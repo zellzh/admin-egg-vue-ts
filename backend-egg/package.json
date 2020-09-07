@@ -25,10 +25,13 @@
   "dependencies": {
     "@types/joi": "^14.3.4",
     "egg": "^2.6.1",
+    "egg-redis": "^2.4.0",
     "egg-scripts": "^2.6.0",
+    "egg-session-redis": "^2.1.0",
     "egg-ts-typeorm": "^1.1.12",
     "joi": "^17.2.1",
     "mysql2": "^2.1.0",
+    "svg-captcha": "^1.4.0",
     "typeorm": "^0.2.25"
   },
   "devDependencies": {
