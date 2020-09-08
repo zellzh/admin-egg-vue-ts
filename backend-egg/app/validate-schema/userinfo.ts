@@ -15,7 +15,8 @@ export default object.keys({
   email: string.email().message('邮箱格式不正确'),
 
   password: string.regex(passwordReg).message('密码格式不对').required(),
-  captcha: string.length(4).message('验证码格式不对').required(),
+  captcha: string.min(4).max(6).message('验证码格式不对').required(),
+  userType: string.valid('normal', 'email', 'phone').required()
 })
 .xor('username', 'email', 'phone') // 用户名必须是三个的其中之一
 .required() // 必须传 value, 防止 undefined 验证通过

@@ -9,7 +9,7 @@ export default () => {
       await next()
     } catch (e) {
       console.error('userValidate error: ' + e);
-      ctx.body = '验证失败'
+      ctx.sendResult(null, 400, '用户信息格式有误')
     }
   };
 }
