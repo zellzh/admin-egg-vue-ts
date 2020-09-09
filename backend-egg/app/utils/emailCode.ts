@@ -1,33 +1,31 @@
 /*
-* nodemailer 发送邮件验证
+* nodemailer 发送邮箱验证
 */
 import nodemailer = require('nodemailer')
-import emailModule = require('../utils/emailModule')
+import emailModule = require('../schema/emailHtml')
 import { Context } from 'egg';
-import { SentMessageInfo } from 'nodemailer/lib/smtp-connection';
 
-// 创建发送者
-const transporter = nodemailer.createTransport({
-  host: "smtp.qq.com", // 发送邮箱服务器
-  port: 465,
-  secure: true, // true for 465, false for other ports
-  auth: {
-    user: '1365568889@qq.com', // 发送邮箱
-    pass: 'sovysxvkloixjjah', // 发送邮箱的授权码
+let transporter
+export default  {
+  // 创建发送者
+  _createTransporter(config) {
+    return nodemailer.createTransport({
+      host: config.host, // 发送邮箱服务器
+      port: config.port,
+      secure: config.port === 465, // true for 465, false for other ports
+      auth: {
+        user: config.user, // 发送邮箱
+        pass: config.pass, // 发送邮箱的授权码
+      },
+    });
   },
-});
-
-export default {
   // 发送邮件验证
-  async send(ctx: Context, to: string): Promise<SentMessageInfo> {
+  async send(ctx: Context, to: string): Promise<unknown> {
+    const config = ctx.app.config.smtp
+    transporter = transporter || this._createTransporter(config)
     // 1.生成验证码
     let captcha = Math.random().toString(16).slice(2, 8)
-    // 2.保存验证码
-    ctx.session.emailCode = {
-      code: captcha,
-      expire: Date.now() + 60 * 1000 // 保存1分钟
-    }
-    // 3.发送信息
+    // 2.发送信息
     let info = {
       from: '<1365568889@qq.com>', // sender address
       to, // list of receivers
@@ -35,14 +33,24 @@ export default {
       // text: "Hello world?", // 纯文本
       html: emailModule(captcha), // html 模板
     }
-    return await transporter.sendMail(info);
+    try {
+      // 3.发送成功时, 保存验证码
+      let res = await transporter.sendMail(info);
+      ctx.session.emailCode = {
+        code: captcha,
+        expire: Date.now() + 60 * 1000 // 保存1分钟
+      }
+      return res
+    } catch (e) {
+      throw e
+    }
   },
 
   // 验证邮箱
   verify(ctx: Context, clientCode) {
     let code: string, expire: number,
     serverCaptcha = ctx.session.emailCode
-    console.log(serverCaptcha);
+    console.log('email: ', serverCaptcha);
     
     try {
       // 取出验证码

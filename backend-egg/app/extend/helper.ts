@@ -1,6 +1,6 @@
 import svgCode from '../utils/svgCode'
 import emailCode from '../utils/emailCode'
-import { SentMessageInfo } from 'nodemailer/lib/smtp-connection'
+import smsCode from '../utils/smsCode'
 
 // 自定义 ctx.helper 方法
 module.exports = {
@@ -9,11 +9,15 @@ module.exports = {
 		return svgCode.create(this.ctx, this.app)
   },
   // 发送邮箱验证码
-  async emailCode(to: string): Promise<SentMessageInfo> {
-    return await emailCode.send(this.ctx, to)
+  async emailCode(to: string): Promise<unknown> {
+    return emailCode.send(this.ctx, to)
+  },
+  // 发送手机验证码
+  async smsCode(to: string): Promise<unknown> {
+    return smsCode.send(this.ctx, to)
   },
 
-  // 验证验证码
+  // 验证码校验
 	verifyCaptcha(clientCode: string, type: string) { 
     const { ctx } = this
     const enum RegisterType { // 注册类型
@@ -28,8 +32,11 @@ module.exports = {
       case RegisterType.Email:
         emailCode.verify(ctx, clientCode) // 邮箱验证码
         break;
-      default:
+      case RegisterType.Phone:
+        smsCode.verify(ctx, clientCode) // 邮箱验证码
         break;
+      default:
+        throw new Error("无效的注册类型")
     }
   }
 }

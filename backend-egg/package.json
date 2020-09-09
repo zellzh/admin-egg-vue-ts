@@ -23,6 +23,7 @@
     "typeorm": "node -r ts-node/register ./node_modules/typeorm/cli.js"
   },
   "dependencies": {
+    "@alicloud/pop-core": "^1.7.9",
     "egg": "^2.6.1",
     "egg-redis": "^2.4.0",
     "egg-scripts": "^2.6.0",

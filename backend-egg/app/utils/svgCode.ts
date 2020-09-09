@@ -1,5 +1,5 @@
 /*
-* svg-captcha 相关
+* svg-captcha 图形验证码
 */
 import { Context, Application } from 'egg'
 import svgCaptcha = require('svg-captcha')

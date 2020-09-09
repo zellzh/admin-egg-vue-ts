@@ -6,6 +6,7 @@ export default (app: Application) => {
   // 获取验证码
   router.get('/normal', controller.utils.imgCode)
   router.get('/email', controller.utils.emailCode)
+  router.get('/sms', controller.utils.smsCode)
   
   // 用户信息验证器
   const validator = app.middleware.userinfoValidator()
