@@ -7,11 +7,13 @@ export default (app: Application) => {
   router.get('/normal', controller.utils.imgCode)
   router.get('/email', controller.utils.emailCode)
   router.get('/sms', controller.utils.smsCode)
+  // 查询用户是否存在
+  router.get('/inquirer', controller.user.findUser)
   
   // 用户信息验证器
   const validator = app.middleware.userinfoValidator()
   // 注册
   router.post('/register', validator, controller.user.register)
   // 登录
-
+  router.post('/login', validator, controller.user.login)
 };

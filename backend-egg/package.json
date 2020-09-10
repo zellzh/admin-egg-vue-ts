@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@alicloud/pop-core": "^1.7.9",
+    "bcrypt": "^5.0.0",
     "egg": "^2.6.1",
     "egg-redis": "^2.4.0",
     "egg-scripts": "^2.6.0",
@@ -48,6 +49,7 @@
     "egg-mock": "^3.16.0",
     "eslint": "^6.7.2",
     "eslint-config-egg": "^8.0.0",
+    "ts-node": "^9.0.0",
     "tslib": "^1.9.0",
     "typescript": "^3.0.0"
   },

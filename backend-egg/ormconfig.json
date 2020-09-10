@@ -1,21 +1,23 @@
 {
+  "name": "default",
   "type": "mysql",
   "host": "localhost",
   "port": 3306,
   "username": "root",
   "password": "root",
-  "database": "user",
+  "database": "admin",
 
   "synchronize": false,
   "logging": false,
+  "timezone": "0800",
 
-  "entities": ["src/entity/**/*.ts"],
-  "migrations": ["src/migration/**/*.ts"],
-  "subscribers": ["src/subscriber/**/*.ts"],
+  "entitiesdir": "app/entity",
+  "migrations": ["db/migration/**/*.ts"],
+  "subscribers": ["app/subscriber/**/*.ts"],
 
   "cli": {
     "entitiesDir": "app/entity",
-    "migrationsDir": "database/migration",
+    "migrationsDir": "db/migration",
     "subscribersDir": "app/subscriber"
   }
 }

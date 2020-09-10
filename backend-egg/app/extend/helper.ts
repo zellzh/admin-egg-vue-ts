@@ -1,6 +1,7 @@
 import svgCode from '../utils/svgCode'
 import emailCode from '../utils/emailCode'
 import smsCode from '../utils/smsCode'
+import bcrypt from '../utils/bcrypt'
 
 // 自定义 ctx.helper 方法
 module.exports = {
@@ -16,7 +17,6 @@ module.exports = {
   async smsCode(to: string): Promise<unknown> {
     return smsCode.send(this.ctx, to)
   },
-
   // 验证码校验
 	verifyCaptcha(clientCode: string, type: string) { 
     const { ctx } = this
@@ -38,5 +38,14 @@ module.exports = {
       default:
         throw new Error("无效的注册类型")
     }
+  },
+
+  // 加密
+  async bcrypt(password: string): Promise<string> {
+    return bcrypt.bcrypt(this.ctx, password)
+  },
+  // 校验密码
+  async compare(password: string, hash: string): Promise<boolean> {
+    return bcrypt.compare(password, hash)
   }
 }
