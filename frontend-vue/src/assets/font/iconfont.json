@@ -1,0 +1,58 @@
+{
+  "id": "2073472",
+  "name": "admin",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "后台管理",
+  "glyphs": [
+    {
+      "icon_id": "2251779",
+      "name": "邮箱",
+      "font_class": "email",
+      "unicode": "e600",
+      "unicode_decimal": 58880
+    },
+    {
+      "icon_id": "10334172",
+      "name": "手机",
+      "font_class": "phone",
+      "unicode": "e604",
+      "unicode_decimal": 58884
+    },
+    {
+      "icon_id": "338930",
+      "name": "验证码",
+      "font_class": "secure",
+      "unicode": "e61f",
+      "unicode_decimal": 58911
+    },
+    {
+      "icon_id": "6209140",
+      "name": "验证码",
+      "font_class": "captcha",
+      "unicode": "e812",
+      "unicode_decimal": 59410
+    },
+    {
+      "icon_id": "1100471",
+      "name": "密码",
+      "font_class": "pwd",
+      "unicode": "e627",
+      "unicode_decimal": 58919
+    },
+    {
+      "icon_id": "3096322",
+      "name": "注册",
+      "font_class": "user",
+      "unicode": "e6bf",
+      "unicode_decimal": 59071
+    },
+    {
+      "icon_id": "6685518",
+      "name": "确认密码",
+      "font_class": "repwd",
+      "unicode": "e619",
+      "unicode_decimal": 58905
+    }
+  ]
+}

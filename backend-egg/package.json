@@ -1,5 +1,5 @@
 {
-  "name": "backend-egg",
+  "name": "admin-backend-egg",
   "version": "1.0.0",
   "description": "admin's backend with eggjs",
   "private": true,
