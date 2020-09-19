@@ -1,5 +1,5 @@
 import Joi = require('joi');
-const { object, string } = Joi.types();
+const { object, string, any } = Joi.types();
 // const UserType = ['normal', 'phone'] // 账户类型
 
 // 用户名正则
@@ -20,4 +20,5 @@ export default object.keys({
   userType: string.valid('normal', 'email', 'phone').required(),
 })
   .xor('username', 'email', 'phone') // 用户名必须是三个的其中之一
-  .required(); // 必须传 value, 防止 undefined 验证通过
+  .required() // 必须传 value, 防止 undefined 验证通过
+  .pattern(any, any);

@@ -17,8 +17,23 @@ export default (appInfo: EggAppInfo) => {
 
   // 密码加密
   config.bcrypt = {
-    saltRounds: 10 // 加 salt 的轮数
-  }
+    saltRounds: 10, // 加 salt 的轮数
+  };
+
+  // 安全
+  config.security = {
+    domainWhiteList: [ // 跨域白名单
+      'http://127.0.0.1:8080',
+      'http://localhost:8080', // 注意, 前后端 localhost / 127.0.0.1 必须一致
+    ],
+  };
+
+  // 跨域: 基于 security, 未设置 origin 时, 则使用白名单, 否则覆盖
+  config.cors = {
+    // origin: '*', // 使用 * 时, 不能携带 cookie
+    allowMethods: 'GET,HEAD,PUT,POST,DELETE,PATCH',
+    credentials: true,
+  };
 
   // the return config will combines to EggAppConfig
   return {

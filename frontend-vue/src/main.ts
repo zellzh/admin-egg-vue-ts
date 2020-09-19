@@ -4,7 +4,9 @@ import router from './router'
 import './plugins/element.js'
 import 'normalize.css'
 import '@/assets/font/iconfont.css'
+import api from '@/api'
 
+Vue.prototype.$api = api
 Vue.config.productionTip = false
 
 new Vue({

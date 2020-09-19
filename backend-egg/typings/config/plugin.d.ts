@@ -17,6 +17,7 @@ import 'egg-view';
 import 'egg-ts-typeorm';
 import 'egg-redis';
 import 'egg-session-redis';
+import 'egg-cors';
 import { EggPluginItem } from 'egg';
 declare module 'egg' {
   interface EggPlugin {
@@ -35,5 +36,6 @@ declare module 'egg' {
     typeorm?: EggPluginItem;
     redis?: EggPluginItem;
     sessionRedis?: EggPluginItem;
+    cors?: EggPluginItem;
   }
 }

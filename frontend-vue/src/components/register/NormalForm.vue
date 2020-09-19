@@ -1,18 +1,29 @@
 <template>
   <el-form ref="normalForm" :rules="formRules" :model="userInfo" label-width="80px"  size="medium">
     <el-form-item label="用户名" prop="username">
-      <el-input v-model="userInfo.username" prefix-icon="iconfont icon-user" placeholder="请输入至少6位的用户名"/>
+      <el-input v-model="userInfo.username"
+                prefix-icon="iconfont icon-user"
+                placeholder="请输入至少6位的用户名"/>
     </el-form-item>
-    <el-form-item label="密码" prop="password">
-      <el-input v-model="userInfo.password" prefix-icon="iconfont icon-pwd" placeholder="请输入至少6位的密码"/>
+    <el-form-item label="密码" prop="password" >
+      <el-input v-model="userInfo.password"
+                show-password
+                prefix-icon="iconfont icon-pwd"
+                placeholder="请输入至少6位的密码"/>
     </el-form-item>
     <el-form-item label="确认密码" prop="rePwd">
-      <el-input v-model="userInfo.rePwd" prefix-icon="iconfont icon-repwd" placeholder="请再次输入密码"/>
+      <el-input v-model="userInfo.rePwd"
+                show-password
+                prefix-icon="iconfont icon-repwd"
+                placeholder="请再次输入密码"/>
     </el-form-item>
     <!-- 验证码 -->
     <el-form-item label="验证码" class="reg-captcha" prop="captcha">
-      <el-input v-model="userInfo.captcha" prefix-icon="iconfont icon-captcha" placeholder="请输入验证码">
+      <el-input v-model="userInfo.captcha"
+                prefix-icon="iconfont icon-captcha"
+                placeholder="请输入验证码">
         <el-image slot="append"
+                  @click="updateCode"
                   :src="userInfo.url" :fit="'contain'"/>
       </el-input>
     </el-form-item>
@@ -36,7 +47,8 @@
 <script lang="ts">
 import { Component, Vue, Ref } from 'vue-property-decorator';
 import userSchema from "@/assets/userSchema"
-import {Form} from "element-ui";
+import { Form } from "element-ui";
+import url from '@/api/url'
 
 @Component({
   name: 'NormalForm',
@@ -58,8 +70,9 @@ export default class NormalForm extends Vue {
     captcha: '',
     userType: 'normal',
     checked: true,
-    url: '../assets/code.png',
+    url: url.baseUrl + url.captcha,
   }
+  isExists = false
 
   /*method
     ====================================== */
@@ -72,7 +85,8 @@ export default class NormalForm extends Vue {
     username: [
       { required: true, message: '用户名不能为空', trigger: 'blur' },
       { min: 6,  message: '用户名至少6位', trigger: 'blur' },
-      { pattern: userSchema.username, message: '用户名只能含有字母数字或下划线', trigger: 'blur', }
+      { pattern: userSchema.username, message: '用户名只能含有字母数字或下划线', trigger: 'blur'},
+      { validator: this.inquirerUser, trigger: 'blur'},
     ],
     password: [
       { required: true, message: '密码不能为空', trigger: 'blur' },
@@ -87,21 +101,44 @@ export default class NormalForm extends Vue {
       { required: true, min: 4, max: 6, message: '验证码格式有误', trigger: 'blur'}
     ]
   }
+  // 确认密码
   private verifyRePwd(rule: any, value: string, cb: any) {
     if (value !== this.userInfo.password) cb(new Error('两次密码不一致'))
     else cb()
   }
+  // 查询用户
+  private async inquirerUser(rule: any, value: string, cb: any) {
+    try{
+      let res = await this.$api.inquirer({username: value})
+      if (res.meta.status === 200) cb(new Error('用户名已经存在'))
+      else cb()
+    }catch (e) {
+      console.error(e.message)
+    }
+  }
+  // 更新验证码
+  private updateCode() {
+    this.userInfo.url = `${url.baseUrl}${url.captcha}?r=${Math.random().toString(16)}`
+  }
+  // 提交注册
   private onSubmit() {
-    this.normalForm.validate(valid => {
-      if (valid) {
+    this.normalForm.validate(async valid => {
+      if (!valid) {
+        this.$message.error('请完善注册信息')
+        return false
+      }
+      let res = await this.$api.register(this.userInfo)
+      console.log(res);
+      if (res.meta.status === 200) {
         this.$message.success('注册成功')
       } else {
-        this.$message.error('请完善注册信息')
-        return false;
+        this.$message.error('注册失败: ' + res.meta.msg)
       }
-    });
+    })
   }
 }
+  /*生命周期
+    ====================================== */
 </script>
 
 <style scoped lang="scss">

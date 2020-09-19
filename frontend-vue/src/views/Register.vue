@@ -210,6 +210,8 @@ export default class Register extends Vue {
     }
   }
   .el-image{
+    width: 96px;
+    height: 32px;
     vertical-align: bottom;
   }
 }
