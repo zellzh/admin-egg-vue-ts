@@ -9,11 +9,13 @@
     <div class="register-box">
       <h3>——用户注册——</h3>
       <!-- 表单 -->
-      <el-tabs tab-position="right" :before-leave="reset">
-        <el-tab-pane :label="item" v-for="item in userType" :key="item">
-          <NormalForm ref="normalForm" v-if="item === userType.normal"/>
-          <EmailForm ref="emailForm" v-else-if="item === userType.email"/>
-          <PhoneForm v-else/>
+      <el-tabs v-model="activeName"
+               tab-position="right">
+        <el-tab-pane :label="item" :name="item"
+                     v-for="item in userType" :key="item">
+          <NormalForm ref="normalForm" v-if="item === userType.normal && item === activeName"/>
+          <EmailForm ref="emailForm" v-if="item === userType.email && item === activeName"/>
+          <PhoneForm ref="phoneForm" v-if="item === userType.phone && item === activeName"/>
         </el-tab-pane>
       </el-tabs>
     </div>
@@ -49,16 +51,10 @@ export default class Register extends Vue {
     email: '邮箱注册',
     phone: '手机注册'
   }
+  activeName = this.userType.normal // 初始标签的 name, 并且每次切换 tab 时, 自动更新成当前 name
 
   /*method
     ====================================== */
-  // 重置表单
-  private reset(){
-    // ref 在 mounted 后渲染, 可能为 undefined, 需要判断使用
-    this.normalForm && this.normalForm[0].resetInfo()
-    this.emailForm && this.emailForm[0].resetInfo()
-    this.phoneForm && this.phoneForm[0].resetInfo()
-  }
   // 背景更新
   private changeImg() {
     let w = document.documentElement.offsetWidth
@@ -71,11 +67,19 @@ export default class Register extends Vue {
     }
     this.registerDiv.style.backgroundImage = `url("https://picsum.photos/seed/${imgSeed}/${w}/${h}")`
   }
+  // 点击 tab 不触发 blur
+  private clearBlur() {
+    let oTabs = document.querySelector('.el-tabs__header')
+    oTabs!.addEventListener('mousedown', e => {
+      e.preventDefault()
+    })
+  }
 
   /*LC(life-cycle)
     ====================================== */
   mounted() {
     this.changeImg()
+    this.clearBlur()
   }
 }
 </script>
@@ -192,15 +196,10 @@ export default class Register extends Vue {
   .el-form-item{
     padding-right: 10px;
     padding-left: 20px;
-    &.reg-captcha{
-      .el-input-group__append{
-        padding: 0;
-      }
-    }
     .el-checkbox{
       color: #aaa69d;
     }
-    .el-button{
+    .el-button.el-button--primary{
       width: 170px;
       font-size: 1.17em;
     }

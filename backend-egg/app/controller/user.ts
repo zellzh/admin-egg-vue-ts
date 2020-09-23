@@ -46,7 +46,7 @@ export default class UserController extends Controller {
   // 查询用户
   public async findUser() {
     const { ctx } = this;
-    const userinfo = ctx.query;
+    const userinfo = ctx.request.body;
     try {
       const res = await ctx.service.user.findUser(userinfo);
       res ?

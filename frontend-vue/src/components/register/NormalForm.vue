@@ -1,7 +1,9 @@
 <template>
-  <el-form ref="normalForm" :rules="formRules" :model="userInfo" label-width="80px"  size="medium">
+  <el-form ref="normalForm" :rules="formRules"
+           :model="userInfo" label-width="80px" size="medium">
     <el-form-item label="用户名" prop="username">
       <el-input v-model="userInfo.username"
+                ref="focus"
                 prefix-icon="iconfont icon-user"
                 placeholder="请输入至少6位的用户名"/>
     </el-form-item>
@@ -47,7 +49,7 @@
 <script lang="ts">
 import { Component, Vue, Ref } from 'vue-property-decorator';
 import userSchema from "@/assets/userSchema"
-import { Form } from "element-ui";
+import {Form} from "element-ui";
 import url from '@/api/url'
 
 @Component({
@@ -60,6 +62,7 @@ export default class NormalForm extends Vue {
   /*ref
     ====================================== */
   @Ref() readonly normalForm!: Form
+  @Ref() readonly focus!: HTMLInputElement
 
   /*data
     ====================================== */
@@ -72,14 +75,14 @@ export default class NormalForm extends Vue {
     checked: true,
     url: url.baseUrl + url.captcha,
   }
-  isExists = false
 
   /*method
     ====================================== */
   // 重置表单
-  resetInfo() {
-    this.normalForm.resetFields()
-  }
+  // resetInfo() {
+  //   this.normalForm.resetFields()
+  // }
+
   // 表单校验
   formRules = {
     username: [
@@ -116,9 +119,9 @@ export default class NormalForm extends Vue {
       console.error(e.message)
     }
   }
-  // 更新验证码
+  // 更新验证码: 防止缓存
   private updateCode() {
-    this.userInfo.url = `${url.baseUrl}${url.captcha}?r=${Math.random().toString(16)}`
+    this.userInfo.url = `${url.baseUrl}${url.captcha}?t=${Date.now()}`
   }
   // 提交注册
   private onSubmit() {
@@ -136,9 +139,13 @@ export default class NormalForm extends Vue {
       }
     })
   }
-}
-  /*生命周期
+
+  /*LC(life-cycle)
     ====================================== */
+  mounted() {
+    this.focus.focus()
+  }
+}
 </script>
 
 <style scoped lang="scss">

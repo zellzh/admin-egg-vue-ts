@@ -1,19 +1,35 @@
 <template>
-  <el-form ref="phoneForm" :rules="formRules" :model="userInfo" label-width="80px"  size="medium">
+  <el-form ref="phoneForm" :rules="formRules"
+           :model="userInfo" label-width="80px" size="medium">
     <el-form-item label="手机" prop="phone">
-      <el-input v-model="userInfo.phone" prefix-icon="iconfont icon-phone" placeholder="请输入手机号码"/>
+      <el-input v-model="userInfo.phone"
+                ref="focus"
+                prefix-icon="iconfont icon-phone"
+                placeholder="请输入手机号码"/>
     </el-form-item>
     <el-form-item label="密码" prop="password">
-      <el-input v-model="userInfo.password" prefix-icon="iconfont icon-pwd" placeholder="请输入至少6位的密码"/>
+      <el-input v-model="userInfo.password"
+                show-password
+                prefix-icon="iconfont icon-pwd"
+                placeholder="请输入至少6位的密码"/>
     </el-form-item>
     <el-form-item label="确认密码" prop="rePwd">
-      <el-input v-model="userInfo.rePwd" prefix-icon="iconfont icon-repwd" placeholder="请再次输入密码"/>
+      <el-input v-model="userInfo.rePwd"
+                show-password
+                prefix-icon="iconfont icon-repwd"
+                placeholder="请再次输入密码"/>
     </el-form-item>
     <!-- 验证码 -->
     <el-form-item label="验证码" class="reg-captcha" prop="captcha">
-      <el-input v-model="userInfo.captcha" prefix-icon="iconfont icon-captcha" placeholder="请输入验证码">
-        <el-image slot="append"
-                  :src="userInfo.url" :fit="'contain'"/>
+      <el-input v-model="userInfo.captcha"
+                prefix-icon="iconfont icon-captcha"
+                placeholder="请输入验证码">
+        <el-button
+            @click="sendSms"
+            :disabled="timer.disabled"
+            slot="append" type="info" plain>
+          {{timer.content}}
+        </el-button>
       </el-input>
     </el-form-item>
     <!-- 用户协议 -->
@@ -48,6 +64,7 @@ export default class PhoneForm extends Vue {
   /*ref
     ====================================== */
   @Ref() readonly phoneForm!: Form
+  @Ref() readonly focus!: HTMLInputElement
 
   /*data
     ====================================== */
@@ -60,18 +77,25 @@ export default class PhoneForm extends Vue {
     checked: true,
     url: '../assets/code.png',
   }
+  timer = {
+    content: '发送验证码',
+    totalTime: 60,
+    disabled: false
+  }
 
   /*method
     ====================================== */
   // 重置表单
-  resetInfo() {
-    this.phoneForm.resetFields()
-  }
+  // resetInfo() {
+  //   this.phoneForm.resetFields()
+  // }
+
   // 表单校验
   formRules = {
     phone: [
       { required: true, message: '手机号不能为空', trigger: 'blur' },
       { pattern: userSchema.phone,  message: '手机号格式不正确', trigger: 'blur' },
+      { validator: this.inquirerUser, trigger: 'blur'}
     ],
     password: [
       { required: true, message: '密码不能为空', trigger: 'blur' },
@@ -92,16 +116,62 @@ export default class PhoneForm extends Vue {
     if (value !== this.userInfo.password) cb(new Error('两次密码不一致'))
     else cb()
   }
-  // 提交逻辑
+  // 查询用户
+  private async inquirerUser(rule: any, value: string, cb: any) {
+    try{
+      let res = await this.$api.inquirer({phone: value})
+      if (res.meta.status === 200) cb(new Error('手机号已经存在'))
+      else cb()
+    }catch (e) {
+      console.error(e.message)
+    }
+  }
+  // 验证码倒计时
+  private countDown() {
+    this.timer.disabled = true
+    this.timer.content = `${this.timer.totalTime}s后重新发送` //解决60秒不见了的问题
+    let clock = setInterval(() => {
+      this.timer.totalTime--
+      this.timer.content = `${this.timer.totalTime}s后重新发送`
+      if (this.timer.totalTime < 0) {     //当倒计时小于0时清除定时器
+        clearInterval(clock)
+        this.timer.content = '重新发送验证码'
+        this.timer.totalTime = 60
+        this.timer.disabled = false
+      }
+    },1000)
+  }
+  // 发送短信
+  private sendSms() {
+    // 用户名合法时, 才能发送验证码
+    this.phoneForm.validateField('phone', async msg => {
+      if (msg) return
+      // 发送邮件
+      await this.$api.sendSms({ phone: this.userInfo.phone })
+      this.countDown()
+    })
+  }
+  // 提交注册
   private onSubmit() {
-    this.phoneForm.validate(valid => {
-      if (valid) {
+    this.phoneForm.validate(async valid => {
+      if (!valid) {
+        this.$message.error('请完善注册信息')
+        return false
+      }
+      let res = await this.$api.register(this.userInfo)
+      console.log(res);
+      if (res.meta.status === 200) {
         this.$message.success('注册成功')
       } else {
-        this.$message.error('请完善注册信息')
-        return false;
+        this.$message.error('注册失败: ' + res.meta.msg)
       }
-    });
+    })
+  }
+
+  /*LC(life-cycle)
+    ====================================== */
+  mounted() {
+    this.focus.focus()
   }
 }
 </script>

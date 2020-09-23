@@ -12,6 +12,7 @@
   "timezone": "0800",
 
   "entitiesdir": "app/entity",
+  "entities": ["app/entity/**/*.ts"],
   "migrations": ["db/migration/**/*.ts"],
   "subscribers": ["app/subscriber/**/*.ts"],
 

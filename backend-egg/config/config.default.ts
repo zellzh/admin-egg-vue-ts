@@ -22,9 +22,10 @@ export default (appInfo: EggAppInfo) => {
 
   // 安全
   config.security = {
-    domainWhiteList: [ // 跨域白名单
+    domainWhiteList: [ // 跨域(访问)白名单: 如果为空, 则对所有请求放行
       'http://127.0.0.1:8080',
-      'http://localhost:8080', // 注意, 前后端 localhost / 127.0.0.1 必须一致
+      'http://192.168.1.6:8080',
+      'http://localhost:8080', // 注意, 前后端 localhost / 127.0.0.1 / 192.168.x.x 必须一致
     ],
   };
 

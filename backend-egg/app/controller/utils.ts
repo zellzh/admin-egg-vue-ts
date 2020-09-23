@@ -9,11 +9,12 @@ export default class UtilsController extends Controller {
     ctx.body = ctx.helper.imgCode();
   }
 
-  // 发送邮箱验证吗
+  // 发送邮箱验证码
   public async emailCode() {
     const { ctx } = this;
+    const { email } = ctx.request.body;
     try {
-      const sendInfo = await ctx.helper.emailCode('zellzh@Foxmail.com');
+      const sendInfo = await ctx.helper.emailCode(email);
       ctx.sendResult(sendInfo, 200, '发送邮件成功');
     } catch (e) {
       console.log('emailCode error: ' + e.message);
@@ -24,8 +25,9 @@ export default class UtilsController extends Controller {
   // 发送短信验证码
   public async smsCode() {
     const { ctx } = this;
+    const { phone } = ctx.request.body;
     try {
-      const sendInfo = await ctx.helper.smsCode('18596779967');
+      const sendInfo = await ctx.helper.smsCode(phone);
       ctx.sendResult(sendInfo, 200, '发送短信成功');
     } catch (e) {
       console.log('smsCode error: ' + e.message);

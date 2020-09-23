@@ -1,19 +1,35 @@
 <template>
-  <el-form ref="emailForm" :rules="formRules" :model="userInfo" label-width="80px"  size="medium">
+  <el-form ref="emailForm" :rules="formRules"
+           :model="userInfo" label-width="80px" size="medium">
     <el-form-item label="邮箱" prop="email">
-      <el-input v-model="userInfo.email" prefix-icon="iconfont icon-email" placeholder="请输入至少6位的用户名"/>
+      <el-input v-model="userInfo.email"
+                ref="focus"
+                prefix-icon="iconfont icon-email"
+                placeholder="请输入邮箱"/>
     </el-form-item>
     <el-form-item label="密码" prop="password">
-      <el-input v-model="userInfo.password" prefix-icon="iconfont icon-pwd" placeholder="请输入至少6位的密码"/>
+      <el-input v-model="userInfo.password"
+                show-password
+                prefix-icon="iconfont icon-pwd"
+                placeholder="请输入至少6位的密码"/>
     </el-form-item>
     <el-form-item label="确认密码" prop="rePwd">
-      <el-input v-model="userInfo.rePwd" prefix-icon="iconfont icon-repwd" placeholder="请再次输入密码"/>
+      <el-input v-model="userInfo.rePwd"
+                show-password
+                prefix-icon="iconfont icon-repwd"
+                placeholder="请再次输入密码"/>
     </el-form-item>
     <!-- 验证码 -->
     <el-form-item label="验证码" class="reg-captcha" prop="captcha">
-      <el-input v-model="userInfo.captcha" prefix-icon="iconfont icon-captcha" placeholder="请输入验证码">
-        <el-image slot="append"
-                  :src="userInfo.url" :fit="'contain'"/>
+      <el-input v-model="userInfo.captcha"
+                prefix-icon="iconfont icon-captcha"
+                placeholder="请输入验证码">
+        <el-button
+            @click="sendEmail"
+            :disabled="timer.disabled"
+            slot="append" type="info" plain>
+          {{timer.content}}
+        </el-button>
       </el-input>
     </el-form-item>
     <!-- 用户协议 -->
@@ -48,6 +64,7 @@ export default class EmailForm extends Vue {
   /*ref
     ====================================== */
   @Ref() readonly emailForm!: Form
+  @Ref() readonly focus!: HTMLInputElement
 
   /*data
     ====================================== */
@@ -60,19 +77,26 @@ export default class EmailForm extends Vue {
     checked: true,
     url: '../assets/code.png',
   }
+  timer = {
+    content: '发送验证码',
+    totalTime: 60,
+    disabled: false
+  }
 
   /*method
     ====================================== */
   // 重置表单
-  resetInfo() {
-    this.emailForm.resetFields()
-  }
+  // resetInfo() {
+  //   this.emailForm.resetFields()
+  // }
+
   // 表单校验
   formRules = {
     email: [
       { required: true, message: '邮箱不能为空', trigger: 'blur' },
       { type: 'email',  message: '邮箱格式不正确', trigger: 'blur' },
-      { validator: this.verifyEmail, trigger: 'blur', }
+      { validator: this.verifyEmail, trigger: 'blur'},
+      { validator: this.inquirerUser, trigger: 'blur'}
     ],
     password: [
       { required: true, message: '密码不能为空', trigger: 'blur' },
@@ -98,16 +122,62 @@ export default class EmailForm extends Vue {
     if (!reg.test(value)) cb(new Error('邮箱格式不正确'))
     else cb()
   }
-  // 提交逻辑
+  // 查询用户
+  private async inquirerUser(rule: any, value: string, cb: any) {
+    try{
+      let res = await this.$api.inquirer({email: value})
+      if (res.meta.status === 200) cb(new Error('邮箱已经存在'))
+      else cb()
+    }catch (e) {
+      console.error(e.message)
+    }
+  }
+  // 验证码倒计时
+  private countDown() {
+    this.timer.disabled = true
+    this.timer.content = `${this.timer.totalTime}s后重新发送` //解决60秒不见了的问题
+    let clock = setInterval(() => {
+      this.timer.totalTime--
+      this.timer.content = `${this.timer.totalTime}s后重新发送`
+      if (this.timer.totalTime < 0) {     //当倒计时小于0时清除定时器
+        clearInterval(clock)
+        this.timer.content = '重新发送验证码'
+        this.timer.totalTime = 60
+        this.timer.disabled = false
+      }
+    },1000)
+  }
+  // 发送验证码
+  private sendEmail() {
+    // 用户名合法时, 才能发送验证码
+    this.emailForm.validateField('email', async msg => {
+      if (msg) return
+      // 发送邮件
+      await this.$api.sendEmail({ email: this.userInfo.email })
+      this.countDown()
+    })
+  }
+  // 提交注册
   private onSubmit() {
-    this.emailForm.validate(valid => {
-      if (valid) {
+    this.emailForm.validate(async valid => {
+      if (!valid) {
+        this.$message.error('请完善注册信息')
+        return false
+      }
+      let res = await this.$api.register(this.userInfo)
+      console.log(res);
+      if (res.meta.status === 200) {
         this.$message.success('注册成功')
       } else {
-        this.$message.error('请完善注册信息')
-        return false;
+        this.$message.error('注册失败: ' + res.meta.msg)
       }
-    });
+    })
+  }
+
+  /*LC(life-cycle)
+    ====================================== */
+  mounted() {
+    this.focus.focus()
   }
 }
 </script>

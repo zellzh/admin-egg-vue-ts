@@ -1,8 +1,12 @@
 export default {
-  baseUrl: "http://127.0.0.1:7001/", // domain
+  baseUrl: "http://localhost:7001/", // domain
 
   // api
   captcha: "captcha",
-  register: "register",
+  email: "email",
+  sms: "sms",
+
   inquirer: 'inquirer',
+  register: "register",
+  login: 'login',
 }
