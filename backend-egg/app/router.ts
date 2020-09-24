@@ -15,5 +15,5 @@ export default (app: Application) => {
   // 注册
   router.post('/register', validator, controller.user.register);
   // 登录
-  router.post('/login', validator, controller.user.login);
+  router.post('/login', controller.user.login);
 };

@@ -1,5 +1,5 @@
 <template>
-  <div class="register-container" ref="registerDiv">
+  <div class="register-container" ref="container">
     <!-- 信息 -->
     <div class="register-info">
       <p>缥缈峰修仙服务平台</p>
@@ -7,7 +7,7 @@
     </div>
     <!-- 内容框 -->
     <div class="register-box">
-      <h3>——用户注册——</h3>
+      <h2>—— 用户注册 ——</h2>
       <!-- 表单 -->
       <el-tabs v-model="activeName"
                tab-position="right">
@@ -39,7 +39,7 @@ import PhoneForm from "@/components/register/PhoneForm.vue";
 export default class Register extends Vue {
   /*ref
     ====================================== */
-  @Ref() readonly registerDiv!: HTMLElement
+  @Ref() readonly container!: HTMLElement
   @Ref() readonly normalForm?: NormalForm[]
   @Ref() readonly emailForm?: EmailForm[]
   @Ref() readonly phoneForm?: PhoneForm[]
@@ -63,10 +63,11 @@ export default class Register extends Vue {
     if (!imgSeed || Date.now() >= parseInt(imgSeed, 16) + 24*60*60*1000) {
       imgSeed = Date.now().toString(16)
       localStorage.setItem('imgSeed', imgSeed)
-      this.registerDiv.style.backgroundImage = `url("https://picsum.photos/seed/${imgSeed}/${w}/${h}?blur")`
+      this.container.style.backgroundImage = `url("https://picsum.photos/seed/${imgSeed}/${w}/${h}")`
     }
-    this.registerDiv.style.backgroundImage = `url("https://picsum.photos/seed/${imgSeed}/${w}/${h}")`
+    this.container.style.backgroundImage = `url("https://picsum.photos/seed/${imgSeed}/${w}/${h}")`
   }
+
   // 点击 tab 不触发 blur
   private clearBlur() {
     let oTabs = document.querySelector('.el-tabs__header')
@@ -159,7 +160,7 @@ export default class Register extends Vue {
   padding-bottom: 10px;
   border-radius: 5px;
   position: absolute;
-  top: 30%;
+  top: 28%;
   left: 40%;
   background: rgb(241, 239, 240);
   // 背景
@@ -175,8 +176,8 @@ export default class Register extends Vue {
     z-index: -1;
   }
 
-  &>h3{
-    margin: 10px 0;
+  &>h2{
+    margin: 20px 0;
     text-align: center;
     color: #248397;
   }

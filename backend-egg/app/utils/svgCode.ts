@@ -30,7 +30,7 @@ export default {
       // 取出验证码
       code = serverCaptcha.code;
       expire = serverCaptcha.expire;
-    } catch (error) {
+    } catch (e) {
       throw new Error('验证码无效, 请重新获取');
     }
 

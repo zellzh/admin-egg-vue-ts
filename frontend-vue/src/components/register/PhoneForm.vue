@@ -1,5 +1,6 @@
 <template>
   <el-form ref="phoneForm" :rules="formRules"
+           @keyup.enter.native="onSubmit"
            :model="userInfo" label-width="80px" size="medium">
     <el-form-item label="手机" prop="phone">
       <el-input v-model="userInfo.phone"
@@ -44,14 +45,14 @@
     <!-- 注册登录 -->
     <el-form-item size="large">
       <el-button type="primary" :disabled="!userInfo.checked" @click="onSubmit">立即注册</el-button>
-      <span class="login-tip">已有账号?<a href="JavaScript:;">立即登录</a></span>
+      <span class="login-tip">已注册账号?<a style="cursor: pointer" @mousedown.prevent="jumpTo">立即登录</a></span>
     </el-form-item>
   </el-form>
 </template>
 
 <script lang="ts">
 import { Component, Vue, Ref } from 'vue-property-decorator';
-import userSchema from "@/assets/userSchema"
+import userReg from "../../assets/userReg"
 import {Form} from "element-ui";
 
 @Component({
@@ -90,17 +91,21 @@ export default class PhoneForm extends Vue {
   //   this.phoneForm.resetFields()
   // }
 
+  // 跳转到登录
+  private async jumpTo() {
+    await this.$router.push('/login')
+  }
   // 表单校验
   formRules = {
     phone: [
       { required: true, message: '手机号不能为空', trigger: 'blur' },
-      { pattern: userSchema.phone,  message: '手机号格式不正确', trigger: 'blur' },
+      { pattern: userReg.phone,  message: '手机号格式不正确', trigger: 'blur' },
       { validator: this.inquirerUser, trigger: 'blur'}
     ],
     password: [
       { required: true, message: '密码不能为空', trigger: 'blur' },
       { min: 6,  message: '密码至少6位', trigger: 'blur' },
-      { pattern: userSchema.password, message: '密码必须包含字母和数字', trigger: 'blur', }
+      { pattern: userReg.password, message: '密码必须包含字母和数字', trigger: 'blur', }
     ],
     rePwd: [
       { required: true, message: '两次密码不一致', trigger: 'blur'},
@@ -129,13 +134,13 @@ export default class PhoneForm extends Vue {
   // 验证码倒计时
   private countDown() {
     this.timer.disabled = true
-    this.timer.content = `${this.timer.totalTime}s后重新发送` //解决60秒不见了的问题
+    this.timer.content = `重新发送(${this.timer.totalTime})` //解决60秒不见了的问题
     let clock = setInterval(() => {
       this.timer.totalTime--
-      this.timer.content = `${this.timer.totalTime}s后重新发送`
+      this.timer.content = `重新发送(${this.timer.totalTime})`
       if (this.timer.totalTime < 0) {     //当倒计时小于0时清除定时器
         clearInterval(clock)
-        this.timer.content = '重新发送验证码'
+        this.timer.content = '重新发送'
         this.timer.totalTime = 60
         this.timer.disabled = false
       }

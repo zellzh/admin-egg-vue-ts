@@ -4,14 +4,14 @@ import VueRouter, { RouteConfig } from 'vue-router'
 import Home from "@/views/Home.vue"
 import Login from "@/views/Login.vue";
 import Register from "@/views/Register.vue";
+import Admin from "@/views/Admin.vue";
 
 Vue.use(VueRouter)
 
 const routes: Array<RouteConfig> = [
   {
     path: '/',
-    name: 'Home',
-    component: Home
+    redirect: '/login',
   },
   {
     path: '/register',
@@ -22,6 +22,11 @@ const routes: Array<RouteConfig> = [
     path: '/login',
     name: 'Login',
     component: Login
+  },
+  {
+    path: '/admin',
+    name: 'Admin',
+    component: Admin
   }
 ]
 

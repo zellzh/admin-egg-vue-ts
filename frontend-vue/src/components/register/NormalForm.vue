@@ -1,5 +1,6 @@
 <template>
   <el-form ref="normalForm" :rules="formRules"
+           @keyup.enter.native="onSubmit"
            :model="userInfo" label-width="80px" size="medium">
     <el-form-item label="用户名" prop="username">
       <el-input v-model="userInfo.username"
@@ -25,6 +26,7 @@
                 prefix-icon="iconfont icon-captcha"
                 placeholder="请输入验证码">
         <el-image slot="append"
+                  style="cursor:pointer;"
                   @click="updateCode"
                   :src="userInfo.url" :fit="'contain'"/>
       </el-input>
@@ -41,14 +43,14 @@
     <!-- 注册登录 -->
     <el-form-item size="large">
       <el-button type="primary" :disabled="!userInfo.checked" @click="onSubmit">立即注册</el-button>
-      <span class="login-tip">已有账号?<a href="JavaScript:;">立即登录</a></span>
+      <span class="login-tip">已注册账号?<a style="cursor: pointer" @mousedown.prevent="jumpTo">立即登录</a></span>
     </el-form-item>
   </el-form>
 </template>
 
 <script lang="ts">
 import { Component, Vue, Ref } from 'vue-property-decorator';
-import userSchema from "@/assets/userSchema"
+import userReg from "../../assets/userReg"
 import {Form} from "element-ui";
 import url from '@/api/url'
 
@@ -83,18 +85,22 @@ export default class NormalForm extends Vue {
   //   this.normalForm.resetFields()
   // }
 
+  // 跳转到登录
+  private async jumpTo() {
+    await this.$router.push('/login')
+  }
   // 表单校验
   formRules = {
     username: [
       { required: true, message: '用户名不能为空', trigger: 'blur' },
       { min: 6,  message: '用户名至少6位', trigger: 'blur' },
-      { pattern: userSchema.username, message: '用户名只能含有字母数字或下划线', trigger: 'blur'},
+      { pattern: userReg.username, message: '用户名只能含有字母数字或下划线', trigger: 'blur'},
       { validator: this.inquirerUser, trigger: 'blur'},
     ],
     password: [
       { required: true, message: '密码不能为空', trigger: 'blur' },
       { min: 6,  message: '密码至少6位', trigger: 'blur' },
-      { pattern: userSchema.password, message: '密码必须包含字母和数字', trigger: 'blur', }
+      { pattern: userReg.password, message: '密码必须包含字母和数字', trigger: 'blur', }
     ],
     rePwd: [
       { required: true, message: '两次密码不一致', trigger: 'blur'},
@@ -131,10 +137,11 @@ export default class NormalForm extends Vue {
         return false
       }
       let res = await this.$api.register(this.userInfo)
-      console.log(res);
       if (res.meta.status === 200) {
         this.$message.success('注册成功')
+        await this.jumpTo()
       } else {
+        this.updateCode()
         this.$message.error('注册失败: ' + res.meta.msg)
       }
     })
@@ -144,6 +151,7 @@ export default class NormalForm extends Vue {
     ====================================== */
   mounted() {
     this.focus.focus()
+    this.updateCode()
   }
 }
 </script>

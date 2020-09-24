@@ -32,14 +32,15 @@ export default class UserController extends Controller {
       }
       // 验证密码
       const res = await ctx.helper.compare(userinfo.password, dbUserinfo.password);
-      if (res) { // true 则密码正确
-        ctx.sendResult(null, 400, '登录成功');
-      } else { // false 则密码错误
-        ctx.sendResult(null, 400, '密码错误');
-      }
+      delete dbUserinfo.password;
+      delete dbUserinfo.createdAt;
+      delete dbUserinfo.updatedAt;
+      res ?
+        ctx.sendResult(dbUserinfo, 200, '登录成功') : // true 则密码正确
+        ctx.sendResult(null, 400, '密码错误'); // false 则密码错误
     } catch (e) {
       console.error('login error: ' + e.message);
-      ctx.sendResult(null, 500, '登录失败');
+      ctx.sendResult(null, 400, e.message);
     }
   }
 
