@@ -87,6 +87,14 @@ export default class Login extends Vue {
 
   /*method
     ====================================== */
+  // 跳转
+  private toRegister() {
+    this.$router.push('/register')
+  }
+  // 更新验证码
+  updateCode() {
+    this.userInfo.url = `${url.baseUrl}${url.captcha}?t=${Date.now()}`
+  }
   // 区分用户类型
   private verifyInfo() {
     const username = this.userInfo.username
@@ -107,6 +115,8 @@ export default class Login extends Vue {
       console.log(res);
       if (res.meta.status === 200) {
         this.$message.success('登录成功')
+        // 保存 token
+        sessionStorage.setItem('token', res.data.token)
         await this.$router.push('/admin')
       } else {
         this.updateCode()
@@ -115,14 +125,6 @@ export default class Login extends Vue {
         this.$message.error('登录失败: ' + res.meta.msg)
       }
     })
-  }
-  // 跳转
-  private toRegister() {
-    this.$router.push('/register')
-  }
-  // 更新验证码
-  updateCode() {
-    this.userInfo.url = `${url.baseUrl}${url.captcha}?t=${Date.now()}`
   }
   // 背景更新
   private changeImg() {

@@ -1,12 +1,19 @@
 export default {
-  baseUrl: "http://localhost:7001/", // domain
+  /* domain
+    ================================ */
+  baseUrl: "http://localhost:7001/",
 
-  // api
+  /* register/login
+    ================================ */
   captcha: "captcha",
   email: "email",
   sms: "sms",
-
+  isLogin: 'islogin',
   inquirer: 'inquirer',
   register: "register",
   login: 'login',
+
+  /* admin
+    ================================ */
+  users: 'users',
 }

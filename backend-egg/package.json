@@ -32,6 +32,7 @@
     "egg-session-redis": "^2.1.0",
     "egg-ts-typeorm": "^1.1.12",
     "joi": "^17.2.1",
+    "jsonwebtoken": "^8.5.1",
     "mime-types": "^2.1.27",
     "mysql2": "^2.1.0",
     "nodemailer": "^6.4.11",
@@ -39,6 +40,7 @@
     "typeorm": "^0.2.25"
   },
   "devDependencies": {
+    "@types/jsonwebtoken": "^8.5.0",
     "@types/mime-types": "^2.1.0",
     "@types/mocha": "^2.2.40",
     "@types/node": "^7.0.12",

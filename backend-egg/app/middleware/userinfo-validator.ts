@@ -1,3 +1,6 @@
+/*
+* joi -- 用户信息校验
+ */
 import userinfoSchema from '../schema/userinfo';
 
 export default () => {

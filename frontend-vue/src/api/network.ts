@@ -1,5 +1,6 @@
 // axios 请求数据
 import axios, {AxiosInstance} from 'axios'
+import Vue from "vue";
 import url from "@/api/url";
 
 axios.defaults.baseURL = url.baseUrl
@@ -11,9 +12,9 @@ let count = 0
 
 // 添加请求拦截器
 axios.interceptors.request.use(
-  config => {
-    // 在发送请求之前做些什么
-
+  config => { // 在发送请求之前做些什么
+    // headers 添加 Authorization 携带 token
+    config.headers.Authorization = sessionStorage.getItem('token')
     return config
   },
   error => {

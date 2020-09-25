@@ -8,7 +8,14 @@ export default (appInfo: EggAppInfo) => {
   config.keys = appInfo.name + '_1599380392260_4313';
 
   // add your egg config in here
-  config.middleware = [];
+  config.middleware = [ // 注册全局中间件
+    'authorize',
+  ];
+  config.authorize = {
+    authUrls: [ // 鉴权路由
+      '/users',
+    ],
+  };
 
   // add your special config in here
   const bizConfig = {

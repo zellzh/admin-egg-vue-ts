@@ -11,15 +11,25 @@ export default class User extends Service {
     }
     // 密码加密
     user.password = await ctx.helper.bcrypt(user.password);
-    // 保存数据
-    user = ctx.repo.User.create(user);
-    return ctx.repo.User.save(user);
+    try {
+      // 保存数据
+      user = ctx.repo.User.create(user);
+      return await ctx.repo.User.save(user);
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   // 查询用户
   public async findUser(user) {
     const { ctx } = this;
     const { username, phone, email } = user;
-    return ctx.repo.User.findOne({ where: [{ username }, { phone }, { email }] });
+    try {
+      return await ctx.repo.User.findOne({
+        where: [{ username }, { phone }, { email }], // or 查询
+      });
+    } catch (e) {
+      console.error(e);
+    }
   }
 }

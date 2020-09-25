@@ -1,4 +1,5 @@
 import mime = require('mime-types');
+import jwt = require('jsonwebtoken');
 
 // 自定义 ctx 方法
 module.exports = {
@@ -21,4 +22,10 @@ module.exports = {
     return mime.lookup(val);
   },
 
+  // jwt api
+  jwt: {
+    sign: jwt.sign,
+    verify: jwt.verify,
+    decode: jwt.decode,
+  },
 };
