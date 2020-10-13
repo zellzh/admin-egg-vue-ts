@@ -44,7 +44,7 @@ router.beforeEach((to, from, next) => {
 
   // 其他界面需要有登录 token 才能访问
   // 防止 token 被篡改, 后端也需要权限控制
-  const token = sessionStorage.getItem('token')
+  const token = localStorage.getItem('rft')
   if (!token) {
     return next('/login')
   }

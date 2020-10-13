@@ -7,6 +7,14 @@ export default (appInfo: EggAppInfo) => {
   // use for cookie sign key, should change to your own and keep security
   config.keys = appInfo.name + '_1599380392260_4313';
 
+  // jwt 配置
+  config.access_token = {
+    expiresIn: 30, // access_token 有效期
+  };
+  config.refresh_token = {
+    expiresIn: 60, // refresh_token 有效期
+  };
+
   // add your egg config in here
   config.middleware = [ // 注册全局中间件
     'authorize',
@@ -29,16 +37,18 @@ export default (appInfo: EggAppInfo) => {
 
   // 安全
   config.security = {
-    domainWhiteList: [ // 跨域(访问)白名单: 如果为空, 则对所有请求放行
+    // 访问白名单: 如果为空, 则对所有请求放行(*), 注意也可用于跨域插件 egg-cors
+    domainWhiteList: [
       'http://127.0.0.1:8080',
       'http://192.168.1.6:8080',
       'http://localhost:8080', // 注意, 前后端 localhost / 127.0.0.1 / 192.168.x.x 必须一致
+      '*',
     ],
   };
 
   // 跨域: 基于 security, 未设置 origin 时, 则使用白名单, 否则覆盖
   config.cors = {
-    // origin: '*', // 使用 * 时, 不能携带 cookie
+    // origin: '127.0.0.1:8080', // 使用 * 时, 不能携带 cookie
     allowMethods: 'GET,HEAD,PUT,POST,DELETE,PATCH',
     credentials: true,
   };

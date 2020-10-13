@@ -20,13 +20,26 @@ html,body, #app{
     height: 100%;
 }
 
-p, h1, h3{
+p, h1, h2, h3{
   margin: 0
 }
+
+ul, ol{
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+image{
+  vertical-align: bottom;
+}
+
 div{
   box-sizing: border-box;
 }
+
 a{
   color: #248397;
+  text-decoration: none;
 }
 </style>

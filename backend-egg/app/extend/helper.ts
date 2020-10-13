@@ -27,16 +27,17 @@ module.exports = {
     }
     switch (type) {
       case RegisterType.Normal:
-        svgCode.verify(ctx, clientCode); // 图形验证码
-        break;
+        return svgCode.verify(ctx, clientCode); // 图形验证码
       case RegisterType.Email:
-        emailCode.verify(ctx, clientCode); // 邮箱验证码
-        break;
+        return emailCode.verify(ctx, clientCode); // 邮箱验证码
       case RegisterType.Phone:
-        smsCode.verify(ctx, clientCode); // 邮箱验证码
-        break;
+        return smsCode.verify(ctx, clientCode); // 邮箱验证码
       default:
-        throw new Error('无效的注册类型');
+        // throw new Error('无效的注册类型');
+        return {
+          code: 1004,
+          msg: '无效的注册类型',
+        };
     }
   },
 

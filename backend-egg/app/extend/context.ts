@@ -1,5 +1,6 @@
 import mime = require('mime-types');
 import jwt = require('jsonwebtoken');
+import { v4 as uuidv4 } from 'uuid';
 
 // 自定义 ctx 方法
 module.exports = {
@@ -28,4 +29,7 @@ module.exports = {
     verify: jwt.verify,
     decode: jwt.decode,
   },
+
+  // uuid
+  uuidv4,
 };

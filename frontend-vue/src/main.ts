@@ -3,7 +3,7 @@ import App from './App.vue'
 import router from './router'
 import './plugins/element.js'
 import 'normalize.css'
-import '@/assets/font/iconfont.css'
+import '@/assets/iconfont/iconfont.css'
 import api from '@/api'
 
 Vue.prototype.$api = api

@@ -7,7 +7,9 @@
     </div>
     <!-- 内容 -->
     <div class="login-box">
+      <!-- 头像 -->
       <div class="login-avatar"/>
+      <!-- 表单 -->
       <el-form ref="loginForm"
                @keyup.enter.native="onSubmit"
                :rules="userRules"
@@ -20,7 +22,7 @@
                     prefix-icon="iconfont icon-user"
                     placeholder="邮箱/手机号/用户名"/>
         </el-form-item>
-        <el-form-item label="密码" prop="password" >
+        <el-form-item label="密码" prop="password">
           <el-input v-model="userInfo.password"
                     show-password
                     prefix-icon="iconfont icon-pwd"
@@ -34,32 +36,39 @@
             <el-image slot="append"
                       @click="updateCode"
                       style="cursor:pointer;"
-                      :src="userInfo.url" :fit="'contain'"/>
+                      :src="api.imgCode" :fit="'contain'"/>
           </el-input>
         </el-form-item>
         <!-- 登录注册 -->
         <el-form-item size="large" class="login-submit">
-          <el-button type="primary"  @click="onSubmit">立即登录</el-button>
-          <div class="login-tip">
+          <el-button type="primary" @click="onSubmit">立即登录</el-button>
+          <p>
             未注册账号?
             <a style="cursor: pointer" @mousedown.prevent="toRegister">立即注册</a>
-          </div>
+          </p>
         </el-form-item>
       </el-form>
+      <!-- 第三方登录 -->
+      <ul class="oauth">
+        <li>第三方登录 |</li>
+        <li><a class="iconfont icon-qq" :href="'JavaScript: void(0)'"/></li>
+        <li><a class="iconfont icon-weixin" :href="'JavaScript: void(0)'"/></li>
+        <li><a class="iconfont icon-weibo" :href="'JavaScript: void(0)'"/></li>
+        <li><a class="iconfont icon-github" :href="api.oauthGithub"/></li>
+      </ul>
+
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { Component, Vue, Ref } from 'vue-property-decorator';
+import {Component, Vue, Ref} from 'vue-property-decorator';
 import url from "@/api/url";
 import userReg from "../assets/userReg";
-import { Form } from 'element-ui'
+import {Form} from 'element-ui'
 
 @Component({
-  components: {
-
-  },
+  components: {},
 })
 export default class Login extends Vue {
   /*ref
@@ -70,6 +79,11 @@ export default class Login extends Vue {
 
   /*data
     ====================================== */
+  baseURL = process.env.VUE_APP_BASE_API
+  api = {
+    imgCode: '',
+    oauthGithub: this.baseURL + url.github
+  }
   userInfo = {
     username: '',
     email: '',
@@ -77,24 +91,26 @@ export default class Login extends Vue {
     password: '',
     captcha: '',
     userType: 'normal',
-    url: url.baseUrl + url.captcha,
   }
   userRules = {
     username: [
-      { required: true, message: '请输入邮箱/手机号/用户名', trigger: 'change' },
+      {required: true, message: '请输入邮箱/手机号/用户名', trigger: 'change'},
     ]
   }
 
   /*method
     ====================================== */
+
   // 跳转
   private toRegister() {
     this.$router.push('/register')
   }
+
   // 更新验证码
   updateCode() {
-    this.userInfo.url = `${url.baseUrl}${url.captcha}?t=${Date.now()}`
+    this.api.imgCode = `${this.baseURL}${url.captcha}?t=${Date.now()}`
   }
+
   // 区分用户类型
   private verifyInfo() {
     const username = this.userInfo.username
@@ -104,34 +120,36 @@ export default class Login extends Vue {
       this.userInfo.email = username
     }
   }
+
   // 登录
   private onSubmit() {
     this.verifyInfo()
-    this.loginForm.validate( async valid => {
+    this.loginForm.validate(async valid => {
       if (!valid) {
         return false
       }
       let res = await this.$api.login(this.userInfo)
       console.log(res);
       if (res.meta.status === 200) {
-        this.$message.success('登录成功')
+        this.$message.success('登录成功');
         // 保存 token
-        sessionStorage.setItem('token', res.data.token)
-        await this.$router.push('/admin')
+        localStorage.setItem('act', res.data.access_token)
+        localStorage.setItem('rft', res.data.refresh_token)
+        await this.$router.push('/admin');
       } else {
         this.updateCode()
         this.userInfo.captcha = ''
-        this.userInfo.password = ''
-        this.$message.error('登录失败: ' + res.meta.msg)
+        this.$message.error('登录失败: ' + res.meta.msg);
       }
     })
   }
+
   // 背景更新
   private changeImg() {
     let w = document.documentElement.offsetWidth
     let h = document.documentElement.offsetHeight
     let imgSeed = localStorage.getItem('imgSeed')
-    if (!imgSeed || Date.now() >= parseInt(imgSeed, 16) + 24*60*60*1000) {
+    if (!imgSeed || Date.now() >= parseInt(imgSeed, 16) + 24 * 60 * 60 * 1000) {
       imgSeed = Date.now().toString(16)
       localStorage.setItem('imgSeed', imgSeed)
       this.container.style.backgroundImage = `url("https://picsum.photos/seed/${imgSeed}/${w}/${h}")`
@@ -148,10 +166,11 @@ export default class Login extends Vue {
   }
 }
 </script>
+
 <style scoped lang="scss">
 /*容器
   ====================================== */
-.login-container{
+.login-container {
   width: 100%;
   height: 100%;
   background: #248397 no-repeat center;
@@ -162,7 +181,7 @@ export default class Login extends Vue {
 
 /*信息
   ====================================== */
-.register-info{
+.register-info {
   display: inline-block;
   max-width: 300px;
   border-radius: 5px;
@@ -174,7 +193,7 @@ export default class Login extends Vue {
   background: rgb(241, 239, 240);
   perspective: 200px;
   // 阴影
-  &:before{
+  &:before {
     content: '';
     width: 126%;
     height: 100%;
@@ -187,8 +206,9 @@ export default class Login extends Vue {
     transform-origin: center;
     transform: rotate(180deg) translateY(-30px) rotateX(70deg);
   }
+
   // 背景
-  &:after{
+  &:after {
     content: '';
     width: 110%;
     height: 110%;
@@ -200,14 +220,15 @@ export default class Login extends Vue {
     z-index: -1;
   }
 
-  &>p{
+  & > p {
     line-height: 30px;
     padding: 0 10px;
     border-radius: 5px 5px 0 0;
     font-size: 1.17em;
     background: rgb(241, 239, 240);
   }
-  &>h1{
+
+  & > h1 {
     margin: 0;
     padding: 0 10px;
     border-radius: 0 0 5px 5px;
@@ -217,17 +238,17 @@ export default class Login extends Vue {
 
 /*内容盒子
   ====================================== */
-.login-box{
-  min-width: 460px;
+.login-box {
+  min-width: 480px;
   //height: 340px;
-  padding: 70px 0 10px 0;
+  padding: 70px 30px 10px 10px;
   border-radius: 5px;
   position: absolute;
   top: 32%;
   left: 40%;
   background: rgb(241, 239, 240);
   // 背景
-  &:before{
+  &:before {
     content: '';
     width: 110%;
     height: 110%;
@@ -239,7 +260,8 @@ export default class Login extends Vue {
     z-index: -1;
   }
 
-  .login-avatar{
+  // 头像
+  .login-avatar {
     width: 100px;
     height: 100px;
     padding: 10px;
@@ -252,38 +274,51 @@ export default class Login extends Vue {
     left: 50%;
     transform: translate(-50%, -50%);
   }
-  &>h3{
-    margin: 10px 0;
-    text-align: center;
-    color: #248397;
+
+  // 第三方登录
+  .oauth{
+    display: flex;
+    justify-content: flex-end;
+    & > li {
+      padding: 0 6px;
+      line-height: 25px;
+      color: #248397;
+      a {
+        font-size: 26px;
+        &.icon-qq:hover{ color: skyblue}
+        &.icon-weixin:hover{ color: green}
+        &.icon-weibo:hover{ color: red}
+        &.icon-github:hover{ color: black}
+      }
+    }
   }
 }
 
 /*element 表单样式
   ====================================== */
-::v-deep .el-form{
-  padding: 0 30px 0 10px;
-
+::v-deep .el-form {
   // 提交部分
-  .login-submit>.el-form-item__content{
-    &:before, &:after{
-      display: none;
-    }
-    display: flex;
-    justify-content: space-between;
-    .el-button.el-button--primary{
-      width: 200px;
-      font-size: 1.17em;
-    }
-    .login-tip{
-      font-size: 12px;
+  .login-submit {
+    margin-bottom: 10px;
+    // item 内容
+    & > .el-form-item__content {
+      display: flex;
+      justify-content: space-between;
+
+      .el-button.el-button--primary {
+        width: 200px;
+        font-size: 1.17em;
+      }
+
+      &:before, &:after {
+        display: none;
+      }
     }
   }
-
-  .el-image{
+  // 验证码部分
+  .el-image {
     width: 96px;
     height: 32px;
-    vertical-align: bottom;
   }
 }
 

@@ -13,6 +13,8 @@ export default (app: Application) => {
   router.post('/inquirer', controller.user.findUser);
   // 验证登录状态
   router.get('/islogin', controller.utils.isLogin);
+  // 更新 token
+  router.get('/refreshtoken', controller.utils.refreshToken);
 
   // 用户信息验证器
   const validator = app.middleware.userinfoValidator();
@@ -20,8 +22,12 @@ export default (app: Application) => {
   router.post('/register', validator, controller.user.register);
   // 登录
   router.post('/login', controller.user.login);
+  // oauth 第三方
+  router.get('/github', controller.github.loginView);
+  router.get('/passport/github/callback', controller.github.getAccessToken);
 
   /* admin
     =========================================== */
   router.get('/users', controller.users.index);
+
 };

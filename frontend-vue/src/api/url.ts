@@ -1,7 +1,7 @@
 export default {
-  /* domain
+  /* domain(使用 process.env 设置)
     ================================ */
-  baseUrl: "http://localhost:7001/",
+  // baseUrl: process.env.VUE_APP_BASE_API,
 
   /* register/login
     ================================ */
@@ -12,6 +12,10 @@ export default {
   inquirer: 'inquirer',
   register: "register",
   login: 'login',
+
+  /* Oauth
+    ================================ */
+  github: 'github',
 
   /* admin
     ================================ */

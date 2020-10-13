@@ -28,7 +28,7 @@
         <el-image slot="append"
                   style="cursor:pointer;"
                   @click="updateCode"
-                  :src="userInfo.url" :fit="'contain'"/>
+                  :src="api.imgCode" :fit="'contain'"/>
       </el-input>
     </el-form-item>
     <!-- 用户协议 -->
@@ -68,6 +68,10 @@ export default class NormalForm extends Vue {
 
   /*data
     ====================================== */
+  baseURL = process.env.VUE_APP_BASE_API
+  api = {
+    imgCode: '',
+  }
   userInfo = {
     username: '',
     password: '',
@@ -75,7 +79,6 @@ export default class NormalForm extends Vue {
     captcha: '',
     userType: 'normal',
     checked: true,
-    url: url.baseUrl + url.captcha,
   }
 
   /*method
@@ -127,7 +130,7 @@ export default class NormalForm extends Vue {
   }
   // 更新验证码: 防止缓存
   private updateCode() {
-    this.userInfo.url = `${url.baseUrl}${url.captcha}?t=${Date.now()}`
+    this.api.imgCode = `${this.baseURL}${url.captcha}?t=${Date.now()}`
   }
   // 提交注册
   private onSubmit() {
@@ -142,6 +145,7 @@ export default class NormalForm extends Vue {
         await this.jumpTo()
       } else {
         this.updateCode()
+        this.userInfo.captcha = ''
         this.$message.error('注册失败: ' + res.meta.msg)
       }
     })

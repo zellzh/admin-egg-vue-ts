@@ -167,7 +167,9 @@ export default class PhoneForm extends Vue {
       console.log(res);
       if (res.meta.status === 200) {
         this.$message.success('注册成功')
+        await this.jumpTo()
       } else {
+        this.userInfo.captcha = ''
         this.$message.error('注册失败: ' + res.meta.msg)
       }
     })

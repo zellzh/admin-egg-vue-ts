@@ -6,6 +6,34 @@
   "description": "后台管理",
   "glyphs": [
     {
+      "icon_id": "26701",
+      "name": "qq",
+      "font_class": "qq",
+      "unicode": "e601",
+      "unicode_decimal": 58881
+    },
+    {
+      "icon_id": "386475",
+      "name": "微信",
+      "font_class": "weixin",
+      "unicode": "e632",
+      "unicode_decimal": 58930
+    },
+    {
+      "icon_id": "6756291",
+      "name": "微博",
+      "font_class": "weibo",
+      "unicode": "e608",
+      "unicode_decimal": 58888
+    },
+    {
+      "icon_id": "14343651",
+      "name": "github",
+      "font_class": "github",
+      "unicode": "e602",
+      "unicode_decimal": 58882
+    },
+    {
       "icon_id": "2251779",
       "name": "邮箱",
       "font_class": "email",

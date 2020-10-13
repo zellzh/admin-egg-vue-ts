@@ -1,10 +1,10 @@
 // axios 请求数据
-import axios, {AxiosInstance} from 'axios'
+import axios, {AxiosInstance, AxiosResponse} from 'axios'
 import Vue from "vue";
-import url from "@/api/url";
+import router from '@/router'
 
-axios.defaults.baseURL = url.baseUrl
-axios.defaults.timeout = 15000
+axios.defaults.baseURL = process.env.VUE_APP_BASE_API
+axios.defaults.timeout = 10000
 axios.defaults.withCredentials = true // 开启携带 cookie
 
 // 记录请求数
@@ -13,8 +13,13 @@ let count = 0
 // 添加请求拦截器
 axios.interceptors.request.use(
   config => { // 在发送请求之前做些什么
-    // headers 添加 Authorization 携带 token
-    config.headers.Authorization = sessionStorage.getItem('token')
+    // 所有请求的 headers.Authorization 都携带 access_token
+    config.headers.Authorization = localStorage.getItem('act');
+
+    // 更新 token 的请求则携带 refresh_token
+    if (config.url?.startsWith('refreshtoken')) {
+      config.headers.Authorization = localStorage.getItem('rft');
+    }
     return config
   },
   error => {
@@ -31,27 +36,64 @@ axios.interceptors.response.use(
   },
   error => {
     // 对响应错误做点什么
+    // 40010 - access_token 过期
+    if (error.response.status === 401 && error.response.data.meta.status === 40010) {
+      // 更新 access_token
+      return updateToken(error.response)
+    }
+
+    // 40011 - refresh_token 过期
+    if (error.response.status === 401 && error.response.data.meta.status === 40011) {
+      // 更新 access_token
+      localStorage.removeItem('rft')
+      location.reload() // 刷新页面触发导航守卫跳转
+      Vue.prototype.$message.error('登录过期, 请重新登录')
+    }
     return Promise.reject(error)
   })
 
-export default {
-  async get (url: string, data?: object): Promise<any> {
-    try {
-      let response = await axios.get(url, { params: data })
-      return response.data
-    } catch (e) {
-      console.error(e)
-    }
-  },
-  async post (url: string, data?: object): Promise<any> {
-    try {
-      let response = await axios.post(url, data)
-      return response.data
-    } catch (e) {
-      console.error(e)
-    }
-  },
-  all (requests: AxiosInstance[]) {
-    return axios.all(requests)
+// 刷新 token
+async function updateToken(response: AxiosResponse) {
+  console.log('更新 token');
+  // 请求 refresh 接口, 更新本地 token
+  const refreshRes = await get('refreshtoken')
+  if (!refreshRes) return
+  localStorage.setItem('act', refreshRes.data.access_token)
+
+  // 携带新的 token 重新发起过期之前的请求
+  const config = response.config
+  config.headers['Authorization'] = refreshRes.data.access_token
+  // 返回 response
+  return await axios.request(config)
+}
+
+// 封装的 get 请求
+async function get (url: string, params?: object): Promise<any> {
+  try {
+    const response = await axios.get(url, { params: params })
+    return response?.data
+  } catch (e) {
+    console.error(e)
   }
+}
+
+// 封装的 post 请求
+async function post (url: string, params?: object): Promise<any> {
+  try {
+    let response = await axios.post(url, params)
+    return response?.data
+  } catch (e) {
+    console.error(e)
+  }
+}
+
+// 封装的 all 请求
+function all (requests: AxiosInstance[]) {
+  return axios.all(requests)
+}
+
+export default {
+  get,
+  post,
+  all,
 }
