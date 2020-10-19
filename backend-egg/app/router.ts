@@ -23,8 +23,12 @@ export default (app: Application) => {
   // 登录
   router.post('/login', controller.user.login);
   // oauth 第三方
-  router.get('/github', controller.github.loginView);
-  router.get('/passport/github/callback', controller.github.getAccessToken);
+  // router.get('/github', controller.github.loginView);
+  // router.get('/passport/github/callback', controller.github.getAccessToken);
+  app.passport.mount('github', {
+    session: false,
+    successRedirect: null, // 注: 不使用重定向时, 需要置空, 因为默认是 '/', 会重定向
+  }); // 使用 passport
 
   /* admin
     =========================================== */

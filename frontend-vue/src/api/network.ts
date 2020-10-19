@@ -1,7 +1,7 @@
 // axios 请求数据
 import axios, {AxiosInstance, AxiosResponse} from 'axios'
-import Vue from "vue";
 import router from '@/router'
+import { MessageBox } from 'element-ui'
 
 axios.defaults.baseURL = process.env.VUE_APP_BASE_API
 axios.defaults.timeout = 10000
@@ -12,7 +12,7 @@ let count = 0
 
 // 添加请求拦截器
 axios.interceptors.request.use(
-  config => { // 在发送请求之前做些什么
+  config => {
     // 所有请求的 headers.Authorization 都携带 access_token
     config.headers.Authorization = localStorage.getItem('act');
 
@@ -23,19 +23,15 @@ axios.interceptors.request.use(
     return config
   },
   error => {
-    // 对请求错误做些什么
     return Promise.reject(error)
   })
 
 // 添加响应拦截器
 axios.interceptors.response.use(
   response => {
-    // 对响应数据做点什么
-
     return response
   },
-  error => {
-    // 对响应错误做点什么
+  async error => {
     // 40010 - access_token 过期
     if (error.response.status === 401 && error.response.data.meta.status === 40010) {
       // 更新 access_token
@@ -44,10 +40,17 @@ axios.interceptors.response.use(
 
     // 40011 - refresh_token 过期
     if (error.response.status === 401 && error.response.data.meta.status === 40011) {
-      // 更新 access_token
+      await MessageBox.confirm(
+        '登录已过期, 继续停留在该页面请点击取消',
+        {
+          title: '提示',
+          confirmButtonText: '重新登录',
+          cancelButtonText: '取消',
+          type: 'warning',
+        })
+      // 确定后, 删除 refresh_token, 并刷新页面触发导航守卫跳转
       localStorage.removeItem('rft')
-      location.reload() // 刷新页面触发导航守卫跳转
-      Vue.prototype.$message.error('登录过期, 请重新登录')
+      await router.push('/login')
     }
     return Promise.reject(error)
   })

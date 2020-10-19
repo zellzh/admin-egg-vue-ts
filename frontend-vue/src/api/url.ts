@@ -15,7 +15,7 @@ export default {
 
   /* Oauth
     ================================ */
-  github: 'github',
+  github: 'passport/github',
 
   /* admin
     ================================ */

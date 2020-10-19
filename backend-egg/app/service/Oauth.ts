@@ -8,6 +8,7 @@ export default class Oauth extends Service {
       where: {
         uid: id,
       },
+      relations: [ 'user' ], // 关联查询
     });
   }
 

@@ -24,6 +24,22 @@ const plugin: EggPlugin = {
     enable: true,
     package: 'egg-cors',
   },
+
+  // 模板引擎 --- ejs
+  ejs: {
+    enable: true,
+    package: 'egg-view-ejs',
+  },
+
+  // egg-passport 第三方登录
+  passport: {
+    enable: true,
+    package: 'egg-passport',
+  },
+  passportGithub: {
+    enable: true,
+    package: 'egg-passport-github',
+  },
 };
 
 export default plugin;

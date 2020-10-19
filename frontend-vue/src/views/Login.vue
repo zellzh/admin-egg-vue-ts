@@ -51,10 +51,10 @@
       <!-- 第三方登录 -->
       <ul class="oauth">
         <li>第三方登录 |</li>
-        <li><a class="iconfont icon-qq" :href="'JavaScript: void(0)'"/></li>
-        <li><a class="iconfont icon-weixin" :href="'JavaScript: void(0)'"/></li>
-        <li><a class="iconfont icon-weibo" :href="'JavaScript: void(0)'"/></li>
-        <li><a class="iconfont icon-github" :href="api.oauthGithub"/></li>
+        <li><a class="iconfont icon-qq" href="JavaScript: void(0)"/></li>
+        <li><a class="iconfont icon-weixin" href="JavaScript: void(0)"/></li>
+        <li><a class="iconfont icon-weibo" href="JavaScript: void(0)"/></li>
+        <li><a class="iconfont icon-github" @click="go2Github" href="JavaScript: void(0)"/></li>
       </ul>
 
     </div>
@@ -100,8 +100,7 @@ export default class Login extends Vue {
 
   /*method
     ====================================== */
-
-  // 跳转
+  // 跳转注册
   private toRegister() {
     this.$router.push('/register')
   }
@@ -142,6 +141,46 @@ export default class Login extends Vue {
         this.$message.error('登录失败: ' + res.meta.msg);
       }
     })
+  }
+
+  // 第三方登录
+  private go2Github() {
+    const subWin = this.openNewWindow();
+    // subWin.document.title = 'Github登录'
+    // 监听打开窗口的数据
+    addEventListener('message', async ev => {
+      // 是后台 api 传来的数据时, 保存 token
+      if (ev.origin + '/' === this.baseURL) {
+        const { access_token, refresh_token } = ev.data
+        localStorage.setItem('act', access_token)
+        localStorage.setItem('rft', refresh_token)
+        this.$message.success('登录成功');
+        // 跳转到 admin
+        await this.$router.push('/admin')
+      }
+    })
+  }
+  // 打开新页面并发送第三方请求
+  private openNewWindow() {
+    const width = 500, height = 500;
+    //获得窗口的垂直位置
+    const iTop = (window.screen.availHeight- height) / 2;
+    //获得窗口的水平位置
+    const iLeft = (window.screen.availWidth - width) / 2;
+    // 配置
+    const windowStyle = `
+      height=${height},
+      width=${width},
+      top=${iTop},
+      left=${iLeft},
+      status=no,
+      toolbar=no,
+      menubar=no,
+      location=no,
+      resizable=no,
+      scrollbars=0,
+      titlebar=no`
+    return window.open(this.api.oauthGithub, 'Oauth Login', windowStyle)
   }
 
   // 背景更新

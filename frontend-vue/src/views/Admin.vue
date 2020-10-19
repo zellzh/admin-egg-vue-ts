@@ -36,16 +36,19 @@ export default class Admin extends Vue {
 
   /*LC(life-cycle)
     ====================================== */
+
+
   // 组件内使用导航守卫: before 防止鉴权界面显示, 影响体验
-  // async beforeRouteEnter (to: string, from:string, next:any) {
-  //   // 访问权限接口, 查看是否有权限
-  //   const res = await Vue.prototype.$api.isLogin() // before 不能获取到实例 this
-  //   if (res.meta.status === 400) {
-  //     Vue.prototype.$message.warning('请登录后再访问')
-  //     return next('/login')
-  //   }
-  //   next()
-  // }
+  /*
+  async beforeRouteEnter (to: string, from:string, next:any) {
+    // 访问权限接口, 查看是否有权限
+    const res = await Vue.prototype.$api.isLogin() // before 不能获取到实例 this
+    if (res.meta.status !== 200) {
+      return next('/login')
+    }
+    next()
+  }
+   */
 }
 </script>
 

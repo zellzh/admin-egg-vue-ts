@@ -1,7 +1,6 @@
 import Vue from 'vue'
 import VueRouter, { RouteConfig } from 'vue-router'
 
-import Home from "@/views/Home.vue"
 import Login from "@/views/Login.vue";
 import Register from "@/views/Register.vue";
 import Admin from "@/views/Admin.vue";
@@ -11,7 +10,7 @@ Vue.use(VueRouter)
 const routes: Array<RouteConfig> = [
   {
     path: '/',
-    redirect: '/login',
+    redirect: '/admin',
   },
   {
     path: '/register',
@@ -35,6 +34,7 @@ const router = new VueRouter({
   base: process.env.BASE_URL,
   routes
 })
+
 // 导航守卫, 控制权限
 router.beforeEach((to, from, next) => {
   // 注册和登录不需要控制
@@ -43,9 +43,10 @@ router.beforeEach((to, from, next) => {
   }
 
   // 其他界面需要有登录 token 才能访问
-  // 防止 token 被篡改, 后端也需要权限控制
+  // 注意点: 防止 token 被篡改, 后端也需要权限控制
   const token = localStorage.getItem('rft')
   if (!token) {
+    Vue.prototype.$message.warning('无权限访问, 请登录后再尝试!')
     return next('/login')
   }
   next() // 有 token 的其他 url 放行

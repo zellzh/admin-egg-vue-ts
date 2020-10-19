@@ -1,3 +1,6 @@
+/*
+ * passport 第三方登录 --- 实现步骤
+ */
 import { Controller } from 'egg';
 import querystring from 'querystring';
 
@@ -46,49 +49,59 @@ export default class OauthController extends Controller {
     const baseURL = 'https://api.github.com/user';
     const res = await ctx.curl(baseURL, {
       method: 'GET',
-      headers: { // 使用 headers.Authorization 携带 token, 也可以使用 get 参数携带 access_token
+      headers: { // 使用 headers.Authorization 携带 token, 也可以使用 get 参数携带 token
         Authorization: `token ${token}`,
       },
       dataType: 'json',
     });
-    const data = res.data;
-    data.provider = 'github';
-    await this.go2Login(data, token);
+    await this.go2Login(res.data, token);
   }
 
-  // 登录(注册)并跳转到登录后的界面
+  // 登录并传输 token / 注册后传输 token
   private async go2Login(data, token) {
     const { ctx } = this;
     // 1.查询 oauth 表的用户 uid 决定登录还是注册
-    const user = await ctx.service.oauth.getOauthUser(data);
+    const oauthUser = await ctx.service.oauth.getOauthUser(data);
+    let user;
 
-    // 2.注册后登录
-    if (!user) {
-      // 1.生成用户信息并保存到数据库
+    // 2.登录/注册第三方用户
+    if (oauthUser) {
+      // 获取用户数据用于登录
+      user = oauthUser.user;
+    } else {
+      // 1.生成用户信息并注册到数据库
       const userInfo = {
         username: ctx.uuidv4(), // 随机用户名
         password: 'com.admin', // 初始密码
         github: 1,
       };
-      const user = await ctx.service.user.createUser(userInfo);
+      user = await ctx.service.user.createUser(userInfo);
       console.log(user);
       // 2.生成授权信息并保存到数据库
       const oauthInfo = {
         access_token: token,
         uid: data.id,
         user_id: user.id,
+        provider: 'github',
       };
       await ctx.service.oauth.createOauth(oauthInfo);
     }
 
-    // 3.直接登录(跳转到admin界面)
-    // const token = ctx.jwt.sign(JSON.stringify(user), this.config.keys);
-    // ctx.cookies.set('token', token, {
-    //   path: '/',
-    //   maxAge: 24 * 60 * 60 * 1000,
-    //   // 注意点: 如果httpOnly: true, 那么前端是无法获取这个cookie
-    //   httpOnly: false,
-    // });
-    // ctx.redirect('http://127.0.0.1:8080/admin');
+    // 3.生成登录 token, 返回给前端(前端保存后跳转页面)
+    // token 传递方式: cookie/query/header/模板引擎+window.opener.postMessage/...
+
+    // access_token
+    user = JSON.parse(JSON.stringify(user)); // 自动调用实体中的 toJSON
+    const access_token = ctx.jwt.sign(user, this.config.keys, this.config.access_token);
+
+    // refresh_token
+    const refresh_token = ctx.jwt.sign(user, this.config.keys, this.config.refresh_token);
+
+    // 通过动态页面传递 token(或者使用 cookie / get 参数传递)
+    await ctx.render('setOauthToken', {
+      access_token,
+      refresh_token,
+      frontendURL: this.config.frontendURL,
+    });
   }
 }

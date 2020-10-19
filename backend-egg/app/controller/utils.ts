@@ -35,21 +35,7 @@ export default class UtilsController extends Controller {
     }
   }
 
-  // 测试登录状态
-  public async isLogin() {
-    const { ctx, app } = this;
-    // const user = ctx.session.user; // session
-    const token = ctx.get('authorization');
-    try {
-      const user = ctx.jwt.verify(token, app.config.keys);
-      ctx.sendResult(user, 200, '已经登录');
-    } catch (e) {
-      console.error('controller-utils-isLogin error: ' + e.message);
-      ctx.sendResult(null, 400, '没有登录');
-    }
-  }
-
-  // 更新 token
+  // 更新 token --- refresh_token
   public async refreshToken() {
     const { ctx } = this;
     const token = ctx.get('authorization');
@@ -72,6 +58,19 @@ export default class UtilsController extends Controller {
           ctx.sendResult(null, 40000, '无效 token');
           break;
       }
+    }
+  }
+
+  // 测试登录状态
+  public async isLogin() {
+    const { ctx, app } = this;
+    // const user = ctx.session.user; // session
+    const token = ctx.get('authorization');
+    try {
+      const user = ctx.jwt.verify(token, app.config.keys);
+      ctx.sendResult(user, 200, '已经登录');
+    } catch (e) {
+      ctx.sendResult(null, 401, '没有登录');
     }
   }
 }

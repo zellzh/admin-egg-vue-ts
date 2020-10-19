@@ -1,5 +1,5 @@
 /*
-* JWT --- 鉴权和登录 token
+* JWT --- 鉴权和登录 access_token
  */
 export default (opts, app) => {
   return async (ctx, next) => {

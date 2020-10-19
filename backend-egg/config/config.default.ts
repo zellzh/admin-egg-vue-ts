@@ -7,12 +7,15 @@ export default (appInfo: EggAppInfo) => {
   // use for cookie sign key, should change to your own and keep security
   config.keys = appInfo.name + '_1599380392260_4313';
 
+  // 前端接口
+  config.frontendURL = 'http://127.0.0.1:8080';
+
   // jwt 配置
   config.access_token = {
-    expiresIn: 30, // access_token 有效期
+    expiresIn: '7d', // access_token 有效期
   };
   config.refresh_token = {
-    expiresIn: 60, // refresh_token 有效期
+    expiresIn: '7d', // refresh_token 有效期
   };
 
   // add your egg config in here
@@ -51,6 +54,13 @@ export default (appInfo: EggAppInfo) => {
     // origin: '127.0.0.1:8080', // 使用 * 时, 不能携带 cookie
     allowMethods: 'GET,HEAD,PUT,POST,DELETE,PATCH',
     credentials: true,
+  };
+
+  // 模板引擎
+  config.view = {
+    // mapping: { '.html': 'ejs' },
+    defaultExtension: '.ejs',
+    defaultViewEngine: 'ejs', // 只有一个模板时配置后, 可以省略 render 后缀和 mapping
   };
 
   // the return config will combines to EggAppConfig

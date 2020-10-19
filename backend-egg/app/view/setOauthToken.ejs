@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport"
+	      content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>oauth github</title>
+</head>
+<body>
+登陆中...
+<script>
+  window.onload = function () {
+    // 获取动态路由传递的数据, 通过 opener.postMessage 通信给父 window
+    const token = {
+      access_token: '<%= access_token%>',
+      refresh_token: '<%= refresh_token%>'
+    }
+    opener.postMessage(token, '<%= frontendURL%>')
+    // 关闭窗口
+    close()
+  }
+</script>
+</body>
+</html>
