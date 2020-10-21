@@ -7,16 +7,16 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import User from './user';
+import Manager from './Manager';
 
 @Entity()
 export default class Oauth {
   // 级联
-  @ManyToOne(() => User, user => user.oauth) // 第一个参数是类型, 第二个是关联字段
+  @ManyToOne(() => Manager, manager => manager.oauth) // 第一个参数是类型, 第二个是关联字段
   @JoinColumn({ // 只能给外键使用
-    name: 'user_id',
+    name: 'mg_id',
   })
-  user: User;
+  manager: Manager;
 
   @PrimaryGeneratedColumn()
   id: number;
@@ -44,7 +44,7 @@ export default class Oauth {
   @Column({
     comment: '本地用户id, 外键',
   })
-  user_id: number;
+  mg_id: number;
 
   @CreateDateColumn({ comment: '添加时间' })
   createdAt: Date;

@@ -75,7 +75,7 @@ export default class OauthController extends Controller {
         password: 'com.admin', // 初始密码
         github: 1,
       };
-      user = await ctx.service.user.createUser(userInfo);
+      user = await ctx.service.manager.createUser(userInfo);
       console.log(user);
       // 2.生成授权信息并保存到数据库
       const oauthInfo = {

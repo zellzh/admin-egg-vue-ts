@@ -4,11 +4,11 @@ export default class Oauth extends Service {
   // 查询授权信息
   public async getOauthUser({ id }) {
     const { ctx } = this;
-    return await ctx.repo.Oauth.findOne({
+    return ctx.repo.Oauth.findOne({
       where: {
         uid: id,
       },
-      relations: [ 'user' ], // 关联查询
+      relations: [ 'manager' ], // 关联查询
     });
   }
 
@@ -17,12 +17,12 @@ export default class Oauth extends Service {
     const { ctx } = this;
     // 保存数据
     oauth = ctx.repo.Oauth.create(oauth);
-    return await ctx.repo.Oauth.save(oauth);
+    return ctx.repo.Oauth.save(oauth);
   }
 
   public async test() {
     const { ctx } = this;
-    return await ctx.repo.User.find({
+    return ctx.repo.Manager.find({
       relations: [ 'oauth' ], // 关联查询
     });
   }

@@ -10,7 +10,7 @@ export default (app: Application) => {
   router.post('/email', controller.utils.emailCode);
   router.post('/sms', controller.utils.smsCode);
   // 查询用户是否存在
-  router.post('/inquirer', controller.user.findUser);
+  router.post('/inquirer', controller.manager.findUser);
   // 验证登录状态
   router.get('/islogin', controller.utils.isLogin);
   // 更新 token
@@ -19,9 +19,9 @@ export default (app: Application) => {
   // 用户信息验证器
   const validator = app.middleware.userinfoValidator();
   // 注册
-  router.post('/register', validator, controller.user.register);
+  router.post('/register', validator, controller.manager.register);
   // 登录
-  router.post('/login', controller.user.login);
+  router.post('/login', controller.manager.login);
   // oauth 第三方
   // router.get('/github', controller.github.loginView);
   // router.get('/passport/github/callback', controller.github.getAccessToken);
@@ -32,6 +32,6 @@ export default (app: Application) => {
 
   /* admin
     =========================================== */
-  router.get('/users', controller.users.index);
+  router.get('/users', controller.user.index);
 
 };

@@ -17,7 +17,7 @@ export default class UtilsController extends Controller {
       const sendInfo = await ctx.helper.emailCode(email);
       ctx.sendResult(sendInfo, 200, '发送邮件成功');
     } catch (e) {
-      console.log('emailCode error: ' + e.message);
+      ctx.logger.error(e);
       ctx.sendResult(null, 400, '发送邮件失败');
     }
   }
@@ -30,7 +30,7 @@ export default class UtilsController extends Controller {
       const sendInfo = await ctx.helper.smsCode(phone);
       ctx.sendResult(sendInfo, 200, '发送短信成功');
     } catch (e) {
-      console.log('smsCode error: ' + e.message);
+      ctx.logger.error(e);
       ctx.sendResult(null, 400, '发送短信失败');
     }
   }
@@ -38,13 +38,13 @@ export default class UtilsController extends Controller {
   // 更新 token --- refresh_token
   public async refreshToken() {
     const { ctx } = this;
-    const token = ctx.get('authorization');
+    const token = ctx.get('authorization'); // refresh_token
     try {
       const userData = ctx.jwt.verify(token, this.config.keys);
-      // 删除过期时间和签发时间
+      // 删除时间, 提取用户数据
       delete userData.iat;
       delete userData.exp;
-      // 更新 access_token
+      // 重新生成 access_token
       userData.access_token = ctx.jwt.sign(userData, this.config.keys, this.config.access_token);
       ctx.sendResult(userData, 200, 'access_token 更新成功');
     } catch (e) {

@@ -1,8 +1,8 @@
 import { Service } from 'egg';
 
-export default class Users extends Service {
+export default class User extends Service {
   public async index() {
     const { ctx } = this;
-    return ctx.repo.User.find();
+    return ctx.repo.Manager.find();
   }
 }

@@ -11,8 +11,7 @@
   "logging": false,
   "timezone": "0800",
 
-  "entitiesdir": "app/entity",
-  "entities": ["app/entity/**/*.ts"],
+  "entitiesDir": "app/entity",
   "migrations": ["db/migration/**/*.ts"],
   "subscribers": ["app/subscriber/**/*.ts"],
 

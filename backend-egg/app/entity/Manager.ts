@@ -6,7 +6,7 @@ import {
   UpdateDateColumn,
   OneToMany,
 } from 'typeorm';
-import Oauth from './oauth';
+import Oauth from './Oauth';
 
 enum OauthTrigger{
   off,
@@ -14,7 +14,7 @@ enum OauthTrigger{
 }
 
 @Entity()
-export default class User {
+export default class Manager {
   // 添加 toJSON 方法, 转为 JSON 时会自动执行, 过滤掉 密码/...  等敏感信息给前端
   toJSON() {
     delete this.password;
@@ -23,7 +23,7 @@ export default class User {
     return this;
   }
   // 级联
-  @OneToMany(() => Oauth, oauth => oauth.user)
+  @OneToMany(() => Oauth, oauth => oauth.manager)
   oauth: Oauth[];
 
   @PrimaryGeneratedColumn()

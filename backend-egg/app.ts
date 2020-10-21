@@ -30,7 +30,7 @@ module.exports = (app: Application) => {
     // 2.登录/注册第三方用户
     if (existsOauth) {
       // 获取用户数据用于登录
-      loginUser = existsOauth.user;
+      loginUser = existsOauth.manager;
     } else {
       // 1.生成用户信息并注册到数据库
       const userinfo = {
@@ -38,7 +38,7 @@ module.exports = (app: Application) => {
         password: 'com.admin', // 初始密码
         github: 1,
       };
-      loginUser = await ctx.service.user.createUser(userinfo);
+      loginUser = await ctx.service.manager.createUser(userinfo);
 
       // 2.生成授权信息并保存到数据库
       const oauthInfo = {
