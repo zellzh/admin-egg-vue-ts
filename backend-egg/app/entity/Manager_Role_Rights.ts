@@ -1,5 +1,6 @@
 /*
- * Manager_Role_Rights --- 用户 | 角色 | 权限关联表
+ * Manager_Role_Rights --- 自定义用户 | 角色 | 权限关联表
+ * 注: 通过 manytoone 来手动建立关系
  */
 import {
   Entity,
@@ -7,11 +8,33 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import Manager from './Manager';
+import Rights from './Rights';
+import Role from './Role';
 
 @Entity()
-export class Manager_Role_Rights {
-  name: 'manager_role_rights'; // 表名
+export default class ManagerRoleRights {
+  // 级联
+  @ManyToOne(() => Manager, mg => mg.mrr)
+  @JoinColumn({ // 关联 Manager 的外键
+    name: 'mg_id',
+  })
+  manager: Manager;
+
+  @ManyToOne(() => Role, role => role.mrr)
+  @JoinColumn({ // 关联 Role 的外键
+    name: 'role_id',
+  })
+  role: Role;
+
+  @ManyToOne(() => Rights, rights => rights.mrr)
+  @JoinColumn({ // 关联 Rights 的外键
+    name: 'rights_id',
+  })
+  rights: Rights;
 
   @PrimaryGeneratedColumn()
   id: number;

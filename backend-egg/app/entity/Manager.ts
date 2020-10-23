@@ -9,10 +9,9 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
-  ManyToMany,
 } from 'typeorm';
 import Oauth from './Oauth';
-import Role from './Role';
+import MRR from './Manager_Role_Rights';
 
 @Entity()
 export default class Manager {
@@ -24,8 +23,9 @@ export default class Manager {
     return this;
   }
   // 级联
-  @ManyToMany(() => Role, role => role.manager) // 多对多角色 Role
-  roles: Role[];
+  @OneToMany(() => MRR, mrr => mrr.manager) // 一对多关联表
+  mrr: MRR[];
+
   @OneToMany(() => Oauth, oauth => oauth.manager) // 一对多三方 Oauth
   oauth: Oauth[];
 

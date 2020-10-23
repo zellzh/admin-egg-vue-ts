@@ -1,6 +1,8 @@
 /*
  * Role --- 角色列表
  * 关系: -> Rights(多对多) | -> Manager(多对多)
+ * 注: 可以直接使用 typeorm 的 manytomany 装饰器, 但是无法自定义添加字段, 用于快捷创建中间表
+ *    需要自定义字段等, 可以手动创建一个中间表, 使用一对多+多对一建立多张表的关系
  */
 import {
   Entity,
@@ -8,46 +10,15 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  ManyToMany,
-  JoinTable,
+  OneToMany,
 } from 'typeorm';
-import Rights from './Rights';
-import Manager from './Manager';
+import MRR from './Manager_Role_Rights';
 
 @Entity()
 export default class Role {
   // 级联
-  @ManyToMany(() => Rights, rights => rights.roles)
-  // 保存关系的表, 即关联表(多对多的表中任意选张表定义即可, 一般给拥有者配置, 默认会用该表名开头命名)
-  // 自动创建的关系表无法自定义字段, 可以手动创建关联表, 通过一对多+多对一来跟关系表级联(繁琐点)
-  @JoinTable({
-    // 关系表的表名
-    name: 'manager_role_rights',
-    // 关联当前表的外键
-    joinColumns: [
-      { name: 'role_id' }, // 角色 Role
-    ],
-    // 关联其他表的外键
-    inverseJoinColumns: [
-      { name: 'rights_id' }, // 权限 Rights
-    ],
-  })
-  rights: Rights[];
-
-  @ManyToMany(() => Manager, mg => mg.roles)
-  @JoinTable({
-    // 关系表的表名
-    name: 'manager_role_rights',
-    // 关联当前表的外键
-    joinColumns: [
-      { name: 'role_id' }, // 角色 Role
-    ],
-    // 关联其他表的外键
-    inverseJoinColumns: [
-      { name: 'mg_id' }, // 用户 Manager
-    ],
-  })
-  manager: Manager[];
+  @OneToMany(() => MRR, mrr => mrr.role)
+  mrr: MRR[];
 
   @PrimaryGeneratedColumn()
   id: number;

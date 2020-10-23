@@ -9,9 +9,9 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  ManyToMany,
+  OneToMany,
 } from 'typeorm';
-import Role from './Role';
+import MRR from './Manager_Role_Rights';
 
 enum Level {
   first,
@@ -22,8 +22,8 @@ enum Level {
 @Entity()
 export default class Rights {
   // 级联
-  @ManyToMany(() => Role, role => role.rights)
-  roles: Role[];
+  @OneToMany(() => MRR, mrr => mrr.rights)
+  mrr: MRR[];
 
   @PrimaryGeneratedColumn()
   id: number;
