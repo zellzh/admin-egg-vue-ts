@@ -1,3 +1,7 @@
+/*
+ * Oauth --- 三方授权列表
+ * 关系: -> Manager(多对一)
+ */
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -13,7 +17,7 @@ import Manager from './Manager';
 export default class Oauth {
   // 级联
   @ManyToOne(() => Manager, manager => manager.oauth) // 第一个参数是类型, 第二个是关联字段
-  @JoinColumn({ // 只能给外键使用
+  @JoinColumn({ // 关系字段的拥有者, 也就是外键
     name: 'mg_id',
   })
   manager: Manager;
@@ -23,21 +27,16 @@ export default class Oauth {
 
   @Column({
     comment: '授权令牌',
-    nullable: false,
   })
   access_token: string;
 
   @Column({
     comment: '授权的第三方平台',
-    nullable: false,
-    unique: false,
   })
   provider: string;
 
   @Column({
     comment: '第三方平台的用户id',
-    nullable: false,
-    unique: false,
   })
   uid: number;
 

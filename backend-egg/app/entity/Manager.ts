@@ -1,3 +1,7 @@
+/*
+ * Manager --- 本地用户(管理员)列表
+ * 关系: -> Oauth(一对多) | -> Role(多对多)
+ */
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -5,13 +9,10 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  ManyToMany,
 } from 'typeorm';
 import Oauth from './Oauth';
-
-enum OauthTrigger{
-  off,
-  on,
-}
+import Role from './Role';
 
 @Entity()
 export default class Manager {
@@ -23,7 +24,9 @@ export default class Manager {
     return this;
   }
   // 级联
-  @OneToMany(() => Oauth, oauth => oauth.manager)
+  @ManyToMany(() => Role, role => role.manager) // 多对多角色 Role
+  roles: Role[];
+  @OneToMany(() => Oauth, oauth => oauth.manager) // 一对多三方 Oauth
   oauth: Oauth[];
 
   @PrimaryGeneratedColumn()
@@ -37,9 +40,9 @@ export default class Manager {
   username: string;
 
   @Column({
+    comment: '用户邮箱',
     nullable: true,
     unique: true,
-    comment: '用户邮箱',
   })
   email: string;
 
@@ -52,20 +55,14 @@ export default class Manager {
 
   @Column({
     comment: '用户密码',
-    nullable: false,
-    unique: false,
   })
   password: string;
 
   @Column({
-    comment: 'github登录',
-    type: 'enum',
-    enum: OauthTrigger,
-    unique: false,
-    nullable: false,
-    default: OauthTrigger.off,
+    comment: '是否是github登录',
+    default: false,
   })
-  github: Oauth; // 枚举类型
+  github: boolean;
 
   @CreateDateColumn({ comment: '添加时间' })
   createdAt: Date;

@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "@alicloud/pop-core": "^1.7.9",
-    "@hackycy/egg-typeorm": "^0.3.6",
+    "@hackycy/egg-typeorm": "^0.3.7",
     "bcrypt": "^5.0.0",
     "egg": "^2.6.1",
     "egg-cors": "^2.2.3",
@@ -40,7 +40,7 @@
     "mysql2": "^2.1.0",
     "nodemailer": "^6.4.11",
     "svg-captcha": "^1.4.0",
-    "typeorm": "^0.2.25",
+    "typeorm": "^0.2.28",
     "uuid": "^8.3.1"
   },
   "devDependencies": {

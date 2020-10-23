@@ -4,17 +4,26 @@
 import 'egg';
 import { TreeRepository, Repository } from 'typeorm'
 import EntityManager from '../app/entity/Manager'
+import EntityManagerRoleRights from '../app/entity/Manager_Role_Rights'
 import EntityOauth from '../app/entity/Oauth'
+import EntityRights from '../app/entity/Rights'
+import EntityRole from '../app/entity/Role'
 
 declare module 'egg' {
   interface Context {
     entity: {
       Manager: typeof EntityManager
+      ManagerRoleRights: typeof EntityManagerRoleRights
       Oauth: typeof EntityOauth
+      Rights: typeof EntityRights
+      Role: typeof EntityRole
     }
     repo: {
       Manager: Repository<EntityManager>
+      ManagerRoleRights: Repository<EntityManagerRoleRights>
       Oauth: Repository<EntityOauth>
+      Rights: Repository<EntityRights>
+      Role: Repository<EntityRole>
     }
   }
 }
