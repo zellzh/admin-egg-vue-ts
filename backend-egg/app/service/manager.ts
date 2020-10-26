@@ -16,7 +16,28 @@ export default class Manager extends Service {
     const { ctx } = this;
     const { username, phone, email } = user;
     return ctx.repo.Manager.findOne({
-      where: [{ username }, { phone }, { email }], // 数组就是 or 查询
+      // 数组就是 or 查询
+      where: [{ username }, { phone }, { email }],
+
+      // 快捷的关联查询, 通过 entity.prop 可以多级关联查询
+      // relations: [ 'mgsRoles', 'mgsRoles.role' ],
+
+      // 自定义 join 进行关联查询
+      join: {
+        alias: 'mg',
+        leftJoinAndSelect: {
+          roles: 'mg.mgsRoles',
+          role: 'roles.role',
+        },
+      },
     });
+
+    // 更多复杂的查询可以使用 builder
+    // return ctx.repo.Manager.createQueryBuilder('manager')
+    //   // .leftJoinAndSelect('manager.relRole', 'mgsRoles')
+    //   // .leftJoinAndMapMany('manager.roles', 'manager.mgsRoles', 'role')
+    //   // .leftJoinAndSelect('mgsRoles.roles', 'role')
+    //   .where([{ username }, { phone }, { email }])
+    //   .getOne();
   }
 }

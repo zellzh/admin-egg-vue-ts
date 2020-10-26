@@ -9,9 +9,12 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToMany,
+  ManyToMany,
+  // OneToMany,
 } from 'typeorm';
-import MRR from './Manager_Role_Rights';
+import Role from './Role';
+
+// import RolesRights from './RolesRights';
 
 enum Level {
   first,
@@ -21,9 +24,24 @@ enum Level {
 
 @Entity()
 export default class Rights {
+  // toJSON 方法
+  toJSON() {
+    const hideKey = [ 'createdAt', 'updatedAt' ];
+    for (const key in this) {
+      if (this.hasOwnProperty(key)) {
+        hideKey.includes(key) && delete this[key];
+      }
+    }
+    return this;
+  }
+
   // 级联
-  @OneToMany(() => MRR, mrr => mrr.rights)
-  mrr: MRR[];
+  @ManyToMany(() => Role, role => role.rights) // 反向关联 Role
+  roles: Role[];
+
+  // 自定义中间表
+  // @OneToMany(() => RolesRights, rel => rel.rights)
+  // rolesRights: RolesRights[];
 
   @PrimaryGeneratedColumn()
   id: number;
@@ -35,6 +53,7 @@ export default class Rights {
 
   @Column({
     comment: '权限类型',
+    nullable: true,
   })
   rights_type: string;
 
@@ -65,6 +84,7 @@ export default class Rights {
   @Column({
     comment: '父级权限',
     nullable: true,
+    unsigned: true,
   })
   pid: number;
 

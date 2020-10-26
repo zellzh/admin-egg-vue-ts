@@ -67,7 +67,7 @@ export default class OauthController extends Controller {
     // 2.登录/注册第三方用户
     if (oauthUser) {
       // 获取用户数据用于登录
-      user = oauthUser.user;
+      user = oauthUser.manager;
     } else {
       // 1.生成用户信息并注册到数据库
       const userInfo = {
