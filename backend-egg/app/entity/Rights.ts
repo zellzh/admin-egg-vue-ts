@@ -1,7 +1,8 @@
 /*
  * Rights --- 权限列表
- * 关系: -> Role(多对多)
- * 类型: 菜单权限(menu) | 路由权限(router) | 请求权限(action)
+ * 关系:
+ *  Rights -(多对多)-> Role [Rights -(一对多)-> RolesRights...]
+ * 权限类型: 菜单权限(menu) | 路由权限(router) | 请求权限(action)
  */
 import {
   Entity,
@@ -9,12 +10,11 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  ManyToMany,
-  // OneToMany,
+  OneToMany,
+  // ManyToMany,
 } from 'typeorm';
-import Role from './Role';
-
-// import RolesRights from './RolesRights';
+import RolesRights from './RolesRights';
+// import Role from './Role';
 
 enum Level {
   first,
@@ -36,12 +36,13 @@ export default class Rights {
   }
 
   // 级联
-  @ManyToMany(() => Role, role => role.rights) // 反向关联 Role
-  roles: Role[];
+  // 中间表关联
+  @OneToMany(() => RolesRights, rel => rel.rights)
+  rightsRoles: RolesRights[];
 
-  // 自定义中间表
-  // @OneToMany(() => RolesRights, rel => rel.rights)
-  // rolesRights: RolesRights[];
+  // ManyToMany 关联
+  // @ManyToMany(() => Role, role => role.rights) // 反向关联 Role
+  // roles: Role[];
 
   @PrimaryGeneratedColumn()
   id: number;

@@ -20,23 +20,15 @@ export default class Manager extends Service {
       where: [{ username }, { phone }, { email }],
 
       // 快捷的关联查询, 通过 entity.prop 可以多级关联查询
-      // relations: [ 'mgsRoles', 'mgsRoles.role' ],
-
-      // 自定义 join 进行关联查询
-      join: {
-        alias: 'mg',
-        leftJoinAndSelect: {
-          roles: 'mg.mgsRoles',
-          role: 'roles.role',
-        },
-      },
+      // relations: [ 'oauth', 'mgsRoles', 'roles', 'roles.rights', 'roles.rolesRights' ],
     });
 
     // 更多复杂的查询可以使用 builder
     // return ctx.repo.Manager.createQueryBuilder('manager')
-    //   // .leftJoinAndSelect('manager.relRole', 'mgsRoles')
-    //   // .leftJoinAndMapMany('manager.roles', 'manager.mgsRoles', 'role')
-    //   // .leftJoinAndSelect('mgsRoles.roles', 'role')
+    //   .leftJoinAndSelect('manager.mgsRoles', 'mgsRoles')
+    //   .leftJoinAndSelect('mgsRoles.role', 'role')
+    //   .leftJoinAndSelect('role.rolesRights', 'rolesRights')
+    //   .leftJoinAndSelect('rolesRights.rights', 'rights')
     //   .where([{ username }, { phone }, { email }])
     //   .getOne();
   }

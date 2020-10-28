@@ -1,6 +1,8 @@
 /*
  * Manager --- 本地用户(管理员)列表
- * 关系: -> Oauth(一对多) | -> Role(多对多)
+ * 关系:
+ *  Manager -(一对多)-> Oauth
+ *  Manager -(多对多)-> Role [Manager -(一对多)-> MgsRoles -(多对一)-> Role]
  */
 import {
   Entity,
@@ -9,13 +11,16 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
-  ManyToMany,
-  JoinTable,
+  // ManyToMany,
+  // JoinTable,
+  // AfterLoad,
+  // AfterInsert,
+  // AfterRemove,
+  // AfterUpdate,
 } from 'typeorm';
 import Oauth from './Oauth';
 import Role from './Role';
-
-// import MgsRoles from './MgsRoles';
+import MgsRoles from './MgsRoles';
 
 @Entity()
 export default class Manager {
@@ -37,21 +42,36 @@ export default class Manager {
     return this;
   }
 
-  // 级联
-  @ManyToMany(() => Role, role => role.mgs)
-  @JoinTable({ // 中间表, 一般给拥有者添加
-    name: 'mgs_roles', // 表名
-    joinColumn: { name: 'mg_id', referencedColumnName: 'id' }, // 连接当前表的外键
-    inverseJoinColumn: { name: 'role_id', referencedColumnName: 'id' }, // 连接关联表的外键
-  })
-  roles: Role[];
-
-  // 自定义中间表
-  // @OneToMany(() => MgsRoles, rel => rel.manager)
-  // mgsRoles: MgsRoles[];
-
-  @OneToMany(() => Oauth, oauth => oauth.manager) // 一对多三方 Oauth
+  // 级联: ManyToMany 和 OneToMany 结合使用, 可以快捷查询中间表
+  @OneToMany(() => Oauth, oauth => oauth.manager) // 一对多 Oauth
   oauth: Oauth[];
+
+  // 中间表关联
+  @OneToMany(() => MgsRoles, rel => rel.manager)
+  mgsRoles: MgsRoles[];
+  // 映射
+  // @AfterRemove()
+  // @AfterUpdate()
+  // @AfterLoad()
+  // @AfterInsert()
+  // getRoles() {
+  //   if (this.mgsRoles && this.mgsRoles.length !== 0) {
+  //     this.roles = this.mgsRoles.map(rel => rel.role);
+  //   } else {
+  //     this.roles = [];
+  //   }
+  // }
+
+  roles?: Role[];
+
+  // ManyToMany 关联
+  // @ManyToMany(() => Role, role => role.mgs)
+  // @JoinTable({ // 中间表, 一般给拥有者添加
+  //   name: 'mgs_roles', // 表名
+  //   joinColumn: { name: 'mg_id', referencedColumnName: 'id' }, // 连接当前表的外键
+  //   inverseJoinColumn: { name: 'role_id', referencedColumnName: 'id' }, // 连接关联表的外键
+  // })
+  // roles: Role[];
 
   @PrimaryGeneratedColumn()
   id: number;

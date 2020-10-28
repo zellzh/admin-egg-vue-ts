@@ -49,7 +49,6 @@ export default class ManagerController extends Controller {
       }
       // 2.查询用户
       let dbUserinfo = await ctx.service.manager.findUser(userinfo);
-      console.log(dbUserinfo.toJSON());
       if (!dbUserinfo) {
         return ctx.sendResult(null, 400, '用户不存在');
       }

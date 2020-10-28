@@ -29,7 +29,7 @@ export default class Oauth {
   // 级联: 参数1: 关联表的类型 | 参数2: 关联表的字段 | 参数3?: 关联表的配置项(只需配置一次, JoinTable 无效)
   @ManyToOne(() => Manager, manager => manager.oauth, {
     cascade: true, // 使用 orm 保存主表实体时, 会自动级联保存从表, 无需多表保存
-    onUpdate: 'CASCADE', // mysql 主表更新时, 外键级联更新
+    onUpdate: 'CASCADE', // mysql 主表更新时, 外键级联更新(ManyToMany使用无效)
   })
   @JoinColumn({ // 关系字段的拥有者, 也就是外键
     name: 'mg_id',

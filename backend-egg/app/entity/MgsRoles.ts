@@ -1,5 +1,6 @@
 /*
- * Mgs_Roles --- 用户 | 角色关联表
+ * MgsRoles --- 用户 | 角色关联表
+ * 关系: [MgsRoles -(多对一)-> Manager/Role]
  */
 import {
   Entity,
@@ -7,25 +8,33 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  // ManyToOne,
-  // JoinColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
-// import Manager from './Manager';
-// import Role from './Role';
+import Manager from './Manager';
+import Role from './Role';
 
-@Entity({ name: 'mgs_roles' })
+@Entity('mgs_roles')
 export default class MgsRoles {
-  // 自定义级联
-  // @ManyToOne(() => Manager, mg => mg.mgsRoles)
-  // @JoinColumn({ // 关联 Manager 的外键
-  //   name: 'mg_id',
-  // })
-  // manager: Manager;
-  // @ManyToOne(() => Role, role => role.mgsRoles)
-  // @JoinColumn({ // 关联 Role 的外键
-  //   name: 'role_id',
-  // })
-  // role: Role;
+  // 中间表级联
+  // 关联 Manager
+  @ManyToOne(() => Manager, mg => mg.mgsRoles, {
+    cascade: true, // 使用 orm 保存主表实体时, 会自动级联保存从表, 无需多表保存
+    onUpdate: 'CASCADE', // mysql 主表更新时, 外键级联更新
+  })
+  @JoinColumn({ // 关联 Manager 的外键
+    name: 'mg_id',
+  })
+  manager: Manager;
+  // 关联 Role
+  @ManyToOne(() => Role, role => role.rolesMgs, {
+    cascade: true,
+    onUpdate: 'CASCADE',
+  })
+  @JoinColumn({ // 关联 Role 的外键
+    name: 'role_id',
+  })
+  role: Role;
 
   @PrimaryGeneratedColumn()
   id: number;
