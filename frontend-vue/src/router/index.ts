@@ -4,6 +4,10 @@ import VueRouter, { RouteConfig } from 'vue-router'
 import Login from "@/views/Login.vue";
 import Register from "@/views/Register.vue";
 import Admin from "@/views/Admin.vue";
+import Welcome from '@/components/admin/Welcome.vue'
+import Users from "@/components/admin/Users.vue";
+import Roles from "@/components/admin/Roles.vue";
+import Rights from "@/components/admin/Rights.vue";
 
 Vue.use(VueRouter)
 
@@ -23,9 +27,16 @@ const routes: Array<RouteConfig> = [
     component: Login
   },
   {
+    redirect: '/welcome',
     path: '/admin',
     name: 'Admin',
-    component: Admin
+    component: Admin,
+    children: [
+      {path: '/welcome', name: 'Welcome', component: Welcome},
+      {path: '/users', name: 'Users', component: Users},
+      {path: '/roles', name: 'Roles', component: Roles},
+      {path: '/rights', name: 'Rights', component: Rights},
+    ]
   }
 ]
 
