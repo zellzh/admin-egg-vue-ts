@@ -7,6 +7,25 @@ export default (appInfo: EggAppInfo) => {
   // use for cookie sign key, should change to your own and keep security
   config.keys = appInfo.name + '_1599380392260_4313';
 
+  // 注册全局中间件
+  config.middleware = [
+    'authorize',
+    'verify',
+  ];
+  // 鉴权中间件
+  config.authorize = {
+    authUrls: [ // 鉴权路由
+      '/users',
+    ],
+  };
+  // 数据验证中间件
+  config.verify = {
+    userUrls: [
+      '/register',
+      '/users',
+    ],
+  };
+
   // 前端接口
   config.frontendURL = 'http://127.0.0.1:8080';
 
@@ -16,16 +35,6 @@ export default (appInfo: EggAppInfo) => {
   };
   config.refresh_token = {
     expiresIn: '7d', // refresh_token 有效期
-  };
-
-  // add your egg config in here
-  config.middleware = [ // 注册全局中间件
-    'authorize',
-  ];
-  config.authorize = {
-    authUrls: [ // 鉴权路由
-      '/users',
-    ],
   };
 
   // add your special config in here

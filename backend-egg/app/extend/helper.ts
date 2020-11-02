@@ -34,10 +34,7 @@ module.exports = {
         return smsCode.verify(ctx, clientCode); // 邮箱验证码
       default:
         // throw new Error('无效的注册类型');
-        return {
-          code: 1004,
-          msg: '无效的注册类型',
-        };
+        return '无效的注册类型';
     }
   },
 

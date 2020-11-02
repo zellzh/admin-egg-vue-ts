@@ -4,14 +4,15 @@ import url from "@/api/url";
 export default {
   /* register/login
     ================================ */
-  sendEmail: (data?: object) => network.post(url.email, data),
-  sendSms: (data?: object) => network.post(url.sms, data),
-  isLogin: (data?: object) => network.get(url.isLogin, data),
-  inquirer: (data?: object) => network.post(url.inquirer, data),
-  register: (data?: object) => network.post(url.register, data),
-  login: (data?: object) => network.post(url.login, data),
+  sendEmail: (data: object) => network.post(url.emailCode, data),
+  sendSms: (data: object) => network.post(url.smsCode, data),
+  isLogin: (data: object) => network.get(url.isLogin, data),
+  inquirer: (data: object) => network.post(url.isExist, data),
+  register: (data: object) => network.post(url.register, data),
+  login: (data: object) => network.post(url.login, data),
 
   /* admin
     ================================ */
-  users: (data?: object) => network.get(url.users, data),
+  getUsers: (data?: object) => network.get(url.users, data),
+  addUser: (data: object) => network.post(url.users, data),
 }

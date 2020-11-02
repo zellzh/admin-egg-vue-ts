@@ -99,8 +99,7 @@ export default class EmailForm extends Vue {
   formRules = {
     email: [
       { required: true, message: '邮箱不能为空', trigger: 'blur' },
-      { type: 'email',  message: '邮箱格式不正确', trigger: 'blur' },
-      { validator: this.verifyEmail, trigger: 'blur'},
+      { pattern: userReg.email,  message: '邮箱格式不正确', trigger: 'blur' },
       { validator: this.inquirerUser, trigger: 'blur'}
     ],
     password: [
@@ -121,21 +120,11 @@ export default class EmailForm extends Vue {
     if (value !== this.userInfo.password) cb(new Error('两次密码不一致'))
     else cb()
   }
-  // 邮箱后缀验证
-  private verifyEmail(rule: any, value: string, cb: any) {
-    let reg = /^.+(.com|.cn|.edu|.org)$/
-    if (!reg.test(value)) cb(new Error('邮箱格式不正确'))
-    else cb()
-  }
   // 查询用户
   private async inquirerUser(rule: any, value: string, cb: any) {
-    try{
-      let res = await this.$api.inquirer({email: value})
-      if (res.meta.status === 200) cb(new Error('邮箱已经存在'))
-      else cb()
-    }catch (e) {
-      console.error(e.message)
-    }
+    let res = await this.$api.inquirer({[rule.field]: value})
+    if (res && res.status === 200 && res.data.meta.code === 200) cb(new Error('邮箱已经存在'))
+    else cb()
   }
   // 验证码倒计时
   private countDown() {
@@ -170,13 +159,9 @@ export default class EmailForm extends Vue {
         return false
       }
       let res = await this.$api.register(this.userInfo)
-      console.log(res);
-      if (res.meta.status === 200) {
+      if (res && res.status === 200) {
         this.$message.success('注册成功')
         await this.jumpTo()
-      } else {
-        this.userInfo.captcha = ''
-        this.$message.error('注册失败: ' + res.meta.msg)
       }
     })
   }

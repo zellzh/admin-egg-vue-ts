@@ -61,7 +61,7 @@ export default class OauthController extends Controller {
   private async go2Login(data, token) {
     const { ctx } = this;
     // 1.查询 oauth 表的用户 uid 决定登录还是注册
-    const oauthUser = await ctx.service.oauth.getOauthUser(data);
+    const oauthUser = await ctx.service.oauth.retrieve(data);
     let user;
 
     // 2.登录/注册第三方用户
@@ -73,9 +73,9 @@ export default class OauthController extends Controller {
       const userInfo = {
         username: ctx.uuidv4(), // 随机用户名
         password: 'com.admin', // 初始密码
-        github: 1,
+        github: true,
       };
-      user = await ctx.service.manager.createUser(userInfo);
+      user = await ctx.service.manager.create(userInfo);
       console.log(user);
       // 2.生成授权信息并保存到数据库
       const oauthInfo = {
@@ -84,7 +84,7 @@ export default class OauthController extends Controller {
         user_id: user.id,
         provider: 'github',
       };
-      await ctx.service.oauth.createOauth(oauthInfo);
+      await ctx.service.oauth.create(oauthInfo);
     }
 
     // 3.生成登录 token, 返回给前端(前端保存后跳转页面)

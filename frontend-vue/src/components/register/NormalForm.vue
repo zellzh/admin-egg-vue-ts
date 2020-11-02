@@ -120,17 +120,13 @@ export default class NormalForm extends Vue {
   }
   // 查询用户
   private async inquirerUser(rule: any, value: string, cb: any) {
-    try{
-      let res = await this.$api.inquirer({username: value})
-      if (res.meta.status === 200) cb(new Error('用户名已经存在'))
-      else cb()
-    }catch (e) {
-      console.error(e.message)
-    }
+    let res = await this.$api.inquirer({[rule.field]: value})
+    if (res && res.status === 200 && res.data.meta.code === 200) cb(new Error('用户名已经存在'))
+    else cb()
   }
   // 更新验证码: 防止缓存
   private updateCode() {
-    this.api.imgCode = `${this.baseURL}${url.captcha}?t=${Date.now()}`
+    this.api.imgCode = `${this.baseURL}${url.imgCode}?t=${Date.now()}`
   }
   // 提交注册
   private onSubmit() {
@@ -140,13 +136,9 @@ export default class NormalForm extends Vue {
         return false
       }
       let res = await this.$api.register(this.userInfo)
-      if (res.meta.status === 200) {
+      if (res && res.status === 200) {
         this.$message.success('注册成功')
         await this.jumpTo()
-      } else {
-        this.updateCode()
-        this.userInfo.captcha = ''
-        this.$message.error('注册失败: ' + res.meta.msg)
       }
     })
   }

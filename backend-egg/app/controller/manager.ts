@@ -2,16 +2,16 @@ import { Controller } from 'egg';
 
 export default class ManagerController extends Controller {
   // 查询用户
-  public async findUser() {
+  public async isExist() {
     const { ctx } = this;
     const userinfo = ctx.request.body;
     try {
-      const res = await ctx.service.manager.findUser(userinfo);
+      const res = await ctx.service.manager.retrieve(userinfo);
       res ?
         ctx.sendResult(res, 200, '已查询到用户') :
-        ctx.sendResult(null, 400, '未查询到用户');
+        ctx.sendResult(null, 200, '未查询到用户', 400);
     } catch (e) {
-      console.error(e);
+      ctx.logger.error(e);
       ctx.sendResult(null, 500, '内部错误, 查询失败');
     }
   }
@@ -22,14 +22,17 @@ export default class ManagerController extends Controller {
     const userinfo = ctx.request.body;
     try {
       // 1.验证码校验
-      ctx.helper.verifyCaptcha(userinfo.captcha, userinfo.userType);
+      const invalid = ctx.helper.verifyCaptcha(userinfo.captcha, userinfo.userType);
+      if (invalid) return ctx.sendResult(null, 400, invalid);
 
       // 2.查询用户
-      const dbUserinfo = await ctx.service.manager.findUser(userinfo);
+      const dbUserinfo = await ctx.service.manager.retrieve(userinfo);
       if (dbUserinfo) return ctx.sendResult(null, 400, '用户已存在');
 
       // 3.添加数据库
-      await ctx.service.manager.createUser(userinfo);
+      await ctx.service.manager.create(userinfo);
+      // 4.绑定默认角色: 管理员
+
       ctx.sendResult(null, 200, '注册成功');
     } catch (e) {
       ctx.logger.error(e);
@@ -43,12 +46,11 @@ export default class ManagerController extends Controller {
     const userinfo = ctx.request.body;
     try {
       // 1.验证码校验
-      const valid = ctx.helper.verifyCaptcha(userinfo.captcha, userinfo.userType);
-      if (valid) {
-        return ctx.sendResult(null, valid.code, valid.msg);
-      }
+      const invalid = ctx.helper.verifyCaptcha(userinfo.captcha, userinfo.userType);
+      if (invalid) return ctx.sendResult(null, 400, invalid);
+
       // 2.查询用户
-      let dbUserinfo = await ctx.service.manager.findUser(userinfo);
+      let dbUserinfo = await ctx.service.manager.retrieve(userinfo);
       if (!dbUserinfo) {
         return ctx.sendResult(null, 400, '用户不存在');
       }
@@ -73,8 +75,8 @@ export default class ManagerController extends Controller {
   private getToken(data) {
     const { ctx } = this;
     // 注: jwt 的 payload 只能是 纯对象(字面量) / JSON / Buffer / 字符串
-    // JSON 不能加第三参数 opts, 只能自己在 JSON 中添加需要的配置(比如: 过期时间)
     // typeorm 返回的是操作后的实体类的实例, 不是对象字面量, 需要转换
+    // JSON 不能加第三参数 opts, 只能自己在 JSON 中添加需要的配置(比如: 过期时间)
     data = JSON.parse(JSON.stringify(data)); // 自动调用实体中的 toJSON
     // dbUserinfo = Object.assign({}, dbUserinfo); // 将实体转为纯对象
     data.access_token = ctx.jwt.sign(data, this.config.keys, this.config.access_token);
@@ -83,6 +85,4 @@ export default class ManagerController extends Controller {
     data.refresh_token = ctx.jwt.sign(data, this.config.keys, this.config.refresh_token);
     return data;
   }
-
-
 }

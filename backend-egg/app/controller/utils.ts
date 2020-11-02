@@ -70,6 +70,7 @@ export default class UtilsController extends Controller {
       const user = ctx.jwt.verify(token, app.config.keys);
       ctx.sendResult(user, 200, '已经登录');
     } catch (e) {
+      ctx.logger.error(e);
       ctx.sendResult(null, 401, '没有登录');
     }
   }

@@ -1,22 +1,17 @@
-interface ResponseData {
-  data: any
-  meta: {
-    msg: string
-    status: number
-  }
-}
+import {AxiosResponse} from "axios";
 
 export interface Api {
   /* register/login
     ================================ */
-  sendEmail(data?: object): Promise<ResponseData>
-  sendSms(data?: object): Promise<ResponseData>
-  isLogin(data?: object): Promise<ResponseData>
-  inquirer(data?: object): Promise<ResponseData>
-  register(data?: object): Promise<ResponseData>
-  login(data?: object): Promise<ResponseData>
+  sendEmail(data: object): AxiosResponse
+  sendSms(data: object): AxiosResponse
+  isLogin(data?: object): AxiosResponse
+  inquirer(data: object): AxiosResponse
+  register(data: object): AxiosResponse
+  login(data: object): AxiosResponse
 
   /* admin
     ================================ */
-  users(data?: object): Promise<ResponseData>
+  getUsers(data?: object): AxiosResponse
+  addUser(data: object): AxiosResponse
 }

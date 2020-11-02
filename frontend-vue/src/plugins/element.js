@@ -1,12 +1,13 @@
 import Vue from 'vue'
 import {
-  Button, Icon, Message, Image, Switch, Tooltip,
+  Button, Icon, Message, Image, Switch, Tooltip, Dialog,
   Form, FormItem, Input, Checkbox, Select, Option,
   Table, TableColumn, Pagination,
   Tabs, TabPane,
   Container, Header, Main, Aside, Row, Col,
-  Menu, Submenu, MenuItem, Breadcrumb, BreadcrumbItem, Card
+  Menu, Submenu, MenuItem, Breadcrumb, BreadcrumbItem, Card,
 } from 'element-ui'
+import Scrollbar from 'element-ui/lib/scrollbar'
 
 Vue.prototype.$message = Message // 消息提示方法绑定给Vue实例
 
@@ -15,6 +16,7 @@ Vue.use(Icon)
 Vue.use(Image)
 Vue.use(Switch)
 Vue.use(Tooltip)
+Vue.use(Dialog)
 
 Vue.use(Form)
 Vue.use(FormItem)
@@ -43,3 +45,5 @@ Vue.use(MenuItem)
 Vue.use(Breadcrumb)
 Vue.use(BreadcrumbItem)
 Vue.use(Card)
+
+Vue.use(Scrollbar)

@@ -13,21 +13,21 @@
         <el-col class="bar-left" :span="18">
           <el-row :gutter="10" type="flex" justify="space-between">
             <el-col :span="4" v-for="(val, prop) in searchSelect" :key="prop">
-              <el-select size="small" v-model="searchData[prop]" :placeholder="val">
+              <el-select size="small" v-model="queryInfo[prop]" :placeholder="val">
                 <el-option v-for="opt of searchOpts[prop]" :key="opt" :label="opt" :value="opt"/>
               </el-select>
             </el-col>
             <el-col :span="6">
-              <el-input size="small" v-model="searchData.key" placeholder="请输入搜索关键字"/>
+              <el-input size="small" v-model="queryInfo.key" placeholder="请输入搜索关键字"/>
             </el-col>
             <el-col :span="6">
-              <el-button type="primary" size="small" @click="onSubmit">查询</el-button>
+              <el-button type="primary" size="small" @click="onQuery">查询</el-button>
               <el-button type="primary" size="small" @click="exportUsers">导出结果</el-button>
             </el-col>
           </el-row>
         </el-col>
         <el-col class="bar-right" :span="6">
-          <el-button type="primary" size="small" @click="addUser">添加用户</el-button>
+          <el-button type="primary" size="small" @click="dialogFormVisible = true">添加用户</el-button>
           <el-button type="primary" size="small" @click="importUsers">导入用户</el-button>
         </el-col>
       </el-row>
@@ -62,19 +62,60 @@
     <!-- 分页区域 -->
     <el-pagination
         background
-        pager-count="5"
+        :pager-count="5"
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
-        :current-page="paginationData.curPage"
-        :page-sizes="paginationData.pageSizes"
-        :page-size="paginationData.pageSize"
+        :current-page="queryInfo.offset"
+        :page-sizes="[5, 10, 15, 20, 25]"
+        :page-size="queryInfo.limit"
         layout="total, sizes, prev, pager, next, jumper"
-        :total="paginationData.total"/>
+        :total="tableData.length"/>
+    <!-- 添加用户 -->
+    <el-dialog @open="dialogOnOpen"
+               :lock-scroll="false"
+               title="添加用户" width="40%"
+               :visible.sync="dialogFormVisible">
+      <el-form :model="addUserForm"
+               ref="userForm"
+               :rules="addUserFormRules"
+               label-width="auto"
+               size="medium">
+        <el-form-item label="用户名" prop="username">
+          <el-input v-model="addUserForm.username"
+                    ref="focus"
+                    clearable
+                    prefix-icon="iconfont icon-user"
+                    placeholder="请输入用户名"/>
+        </el-form-item>
+        <el-form-item label="密码" prop="password">
+          <el-input v-model="addUserForm.password"
+                    show-password
+                    prefix-icon="iconfont icon-pwd"
+                    placeholder="请输入至少6位的密码"/>
+        </el-form-item>
+        <el-form-item label="邮箱" prop="email">
+          <el-input v-model="addUserForm.email"
+                    prefix-icon="iconfont icon-email"
+                    placeholder="请输入邮箱"/>
+        </el-form-item>
+        <el-form-item label="手机" prop="phone">
+          <el-input v-model="addUserForm.phone"
+                    prefix-icon="iconfont icon-phone"
+                    placeholder="请输入手机号"/>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogFormVisible = false">取 消</el-button>
+        <el-button type="primary" @click="onAddUser">确 定</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script lang="ts">
-import {Component, Vue} from 'vue-property-decorator';
+import {Component, Vue, Ref} from 'vue-property-decorator';
+import userReg from "@/assets/userReg";
+import { Form } from "element-ui";
 
 @Component({
   name: 'Users',
@@ -85,7 +126,7 @@ import {Component, Vue} from 'vue-property-decorator';
 export default class Users extends Vue {
   /*ref
     ====================================== */
-
+  @Ref() readonly userForm?: Form; // 刚进入页面表单未加载
 
   /*data
     ====================================== */
@@ -102,11 +143,13 @@ export default class Users extends Vue {
     type: [ '用户名', '手机号', '邮箱' ],
   }
   // 查询数据
-  searchData = {
+  queryInfo = {
     role: '',
     type: '',
     origin: '',
     key: '',
+    limit: 2,
+    offset: 1,
   }
   // 表头
   tableField = {
@@ -168,22 +211,25 @@ export default class Users extends Vue {
       userState: false
     }
   ]
-  // 分页数据
-  paginationData = {
-    curPage: 1,
-    pageSizes: [2, 4, 6, 8, 10],
-    pageSize: 2,
-    total: this.tableData.length
+  // 添加用户的表单数据
+  dialogFormVisible = false
+  addUserForm = {
+    username: '',
+    password: '',
+    email: '',
+    phone: '',
   }
 
 
   /*method
    ====================================== */
-  private onSubmit() {
-    console.log(this.searchData);
+  private async getUserList() {
+    const response = await this.$api.getUsers()
+    if (!response) return
+    console.log(response.data);
   }
-  private addUser() {
-
+  private onQuery() {
+    console.log(this.queryInfo);
   }
   private importUsers() {
 
@@ -191,6 +237,7 @@ export default class Users extends Vue {
   private exportUsers() {
 
   }
+
   // 分页: 显示条数发生改变时
   private handleSizeChange(size: string) {
     console.log(size);
@@ -200,9 +247,56 @@ export default class Users extends Vue {
     console.log(curPage);
   }
 
+  // 添加用户弹窗
+  private onAddUser() { // 提交
+    // 数据预校验
+    this.userForm!.validate(async valid => {
+      // if (!valid) {
+      //   this.$message.error('请完善注册信息')
+      //   return false
+      // }
+      let res = await this.$api.addUser(this.addUserForm)
+      if (res && res.status === 200) {
+        this.$message.success('添加成功')
+        this.dialogFormVisible = false
+      }
+    })
+  }
+  dialogOnOpen() { // 对话框打开事件
+    this.userForm?.resetFields() // 重置表单
+  }
+  // 表单验证
+  addUserFormRules = {
+    username: [
+      { required: true, message: '用户名不能为空', trigger: 'blur' },
+      { min: 6,  message: '用户名至少6位', trigger: 'blur' },
+      { pattern: userReg.username, message: '用户名只能含有字母数字或下划线', trigger: 'blur'},
+      { validator: this.inquirer, trigger: 'blur'}
+    ],
+    password: [
+      { required: true, message: '密码不能为空', trigger: 'blur' },
+      { min: 6,  message: '密码至少6位', trigger: 'blur' },
+      { pattern: userReg.password, message: '密码必须包含字母和数字', trigger: 'blur', }
+    ],
+    email: [
+      { pattern: userReg.email,  message: '邮箱格式不正确', trigger: 'blur' },
+    ],
+    phone: [
+      { pattern: userReg.phone,  message: '手机格式不正确', trigger: 'blur' },
+    ],
+  }
+  // 数据库查询是否存在
+  private async inquirer(rule: any, value: string, cb: any) {
+    let res = await this.$api.inquirer({[rule.field]: value})
+    if (res && res.status === 200 && res.data.meta.code === 200) cb(new Error('用户已经存在'))
+    else cb()
+  }
+
   /*LC(life-cycle)
     ====================================== */
-
+  async created() {
+    await this.getUserList()
+  }
 }
 </script>
 

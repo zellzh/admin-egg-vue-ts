@@ -32,26 +32,17 @@ export default {
       expire = serverCaptcha.expire;
     } catch (e) {
       // throw new Error('验证码失效');
-      return {
-        code: 1001,
-        msg: '验证码失效',
-      };
+      return '验证码失效';
     }
 
     if (Date.now() >= expire) { 			// 判断过期
       ctx.session.imgCode = null;
       // throw new Error('验证码已过期');
-      return {
-        code: 1002,
-        msg: '验证码已过期',
-      };
+      return '验证码已过期';
     } else if (clientCode.toLowerCase() !== code) { // 判断错误
       ctx.session.imgCode = null;
       // throw new Error('验证码错误');
-      return {
-        code: 1003,
-        msg: '验证码错误',
-      };
+      return '验证码错误';
     }
     ctx.session.imgCode = null;				// 验证码有效期只有一次
   },

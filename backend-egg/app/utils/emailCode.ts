@@ -2,7 +2,7 @@
 * nodemailer 发送邮箱验证
 */
 import nodemailer = require('nodemailer');
-import emailModule = require('../schema/emailHtml');
+import emailModule = require('../template/sendEmailHtml');
 import { Context } from 'egg';
 
 let transporter;
@@ -60,25 +60,16 @@ export default {
       expire = serverCaptcha.expire;
     } catch (error) {
       // throw new Error('验证码失效');
-      return {
-        code: 1001,
-        msg: '验证码失效',
-      };
+      return '验证码失效';
     }
 
     if (Date.now() >= expire) { // 判断过期
       ctx.session.emailCode = null;
       // throw new Error('验证码已过期');
-      return {
-        code: 1002,
-        msg: '验证码已过期',
-      };
+      return '验证码已过期';
     } else if (clientCode.toLowerCase() !== code) { // 判断错误
       // throw new Error('验证码错误');
-      return {
-        code: 1003,
-        msg: '验证码错误',
-      };
+      return '验证码错误';
     }
     ctx.session.emailCode = null; // 验证码一次性
   },

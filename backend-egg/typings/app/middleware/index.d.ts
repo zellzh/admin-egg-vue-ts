@@ -3,11 +3,11 @@
 
 import 'egg';
 import ExportAuthorize from '../../../app/middleware/authorize';
-import ExportUserinfoValidator from '../../../app/middleware/userinfo-validator';
+import ExportVerify from '../../../app/middleware/verify';
 
 declare module 'egg' {
   interface IMiddleware {
     authorize: typeof ExportAuthorize;
-    userinfoValidator: typeof ExportUserinfoValidator;
+    verify: typeof ExportVerify;
   }
 }

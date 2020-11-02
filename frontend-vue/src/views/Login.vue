@@ -107,7 +107,7 @@ export default class Login extends Vue {
 
   // 更新验证码
   updateCode() {
-    this.api.imgCode = `${this.baseURL}${url.captcha}?t=${Date.now()}`
+    this.api.imgCode = `${this.baseURL}${url.imgCode}?t=${Date.now()}`
   }
 
   // 区分用户类型
@@ -127,18 +127,14 @@ export default class Login extends Vue {
       if (!valid) {
         return false
       }
-      let res = await this.$api.login(this.userInfo)
-      console.log(res);
-      if (res.meta.status === 200) {
+      let response = await this.$api.login(this.userInfo)
+      if (response && response.status === 200) {
         this.$message.success('登录成功');
         // 保存 token
-        localStorage.setItem('act', res.data.access_token)
-        localStorage.setItem('rft', res.data.refresh_token)
+        const data = response.data.data
+        localStorage.setItem('act', data.access_token)
+        localStorage.setItem('rft', data.refresh_token)
         await this.$router.push('/admin');
-      } else {
-        this.updateCode()
-        this.userInfo.captcha = ''
-        this.$message.error('登录失败: ' + res.meta.msg);
       }
     })
   }
@@ -360,5 +356,4 @@ export default class Login extends Vue {
     height: 32px;
   }
 }
-
 </style>

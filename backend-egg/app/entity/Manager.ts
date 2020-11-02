@@ -25,7 +25,7 @@ import MgsRoles from './MgsRoles';
 @Entity()
 export default class Manager {
   // 添加 toJSON 方法, 转为 JSON 时会自动执行, 过滤掉 密码/...  等敏感信息给前端
-  toJSON() {
+  toJSON?() {
     const hideKey = [ 'password', 'createdAt', 'updatedAt' ];
     const jsonKey = [ 'roles', 'oauth' ];
     for (const key in this) {
@@ -44,11 +44,11 @@ export default class Manager {
 
   // 级联: ManyToMany 和 OneToMany 结合使用, 可以快捷查询中间表
   @OneToMany(() => Oauth, oauth => oauth.manager) // 一对多 Oauth
-  oauth: Oauth[];
+  oauth?: Oauth[];
 
   // 中间表关联
   @OneToMany(() => MgsRoles, rel => rel.manager)
-  mgsRoles: MgsRoles[];
+  mgsRoles?: MgsRoles[];
   // 映射
   // @AfterRemove()
   // @AfterUpdate()
@@ -74,28 +74,28 @@ export default class Manager {
   // roles: Role[];
 
   @PrimaryGeneratedColumn()
-  id: number;
+  id?: number;
 
   @Column({
     comment: '用户名',
     nullable: true,
     unique: true,
   })
-  username: string;
+  username?: string;
 
   @Column({
     comment: '用户邮箱',
     nullable: true,
     unique: true,
   })
-  email: string;
+  email?: string;
 
   @Column({
     nullable: true,
     unique: true,
     comment: '用户手机',
   })
-  phone: string;
+  phone?: string;
 
   @Column({
     comment: '用户密码',
@@ -106,13 +106,13 @@ export default class Manager {
     comment: '是否是github登录',
     default: false,
   })
-  github: boolean;
+  github?: boolean;
 
   // CreateDateColumn 默认 type=datetime(6), 保留6位小数
   // Column 自定义时, 需要指定 default: () => 'NOW()' | 'CURRENT_TIMESTAMP'
   @CreateDateColumn({ comment: '添加时间' })
-  createdAt: Date;
+  createdAt?: Date;
 
   @UpdateDateColumn({ comment: '更新时间' })
-  updatedAt: Date;
+  updatedAt?: Date;
 }

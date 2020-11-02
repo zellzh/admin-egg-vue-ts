@@ -2,7 +2,7 @@ import { Service } from 'egg';
 
 export default class Oauth extends Service {
   // 查询授权信息
-  public async getOauthUser({ id }) {
+  public async retrieve({ id }) {
     const { ctx } = this;
     return ctx.repo.Oauth.findOne({
       where: {
@@ -13,17 +13,12 @@ export default class Oauth extends Service {
   }
 
   // 保存用户数据
-  public async createOauth(oauth) {
+  public async create(oauth) {
     const { ctx } = this;
+    // 删除空串
+    ctx.deleteEmpty(oauth);
     // 保存数据
     oauth = ctx.repo.Oauth.create(oauth);
     return ctx.repo.Oauth.save(oauth);
-  }
-
-  public async test() {
-    const { ctx } = this;
-    return ctx.repo.Manager.find({
-      relations: [ 'oauth' ], // 关联查询
-    });
   }
 }

@@ -21,6 +21,7 @@
  *   优点: 建表逻辑清晰, 无需修改 migration, 关联查询一定会查到中间表信息
  *   缺点: 关联查询时必须通过中间表, 查询和结构复杂, 需要额外映射处理结构
  */
+
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -46,7 +47,7 @@ import RolesRights from './RolesRights';
 @Entity()
 export default class Role {
   // toJSON 方法
-  toJSON() {
+  toJSON?() {
     const hideKey = [ 'createdAt', 'updatedAt' ];
     for (const key in this) {
       if (this.hasOwnProperty(key)) {
@@ -59,9 +60,9 @@ export default class Role {
   // 级联: ManyToMany 和 OneToMany 结合使用, 可以快捷查询中间表
   // 中间表关联
   @OneToMany(() => MgsRoles, rel => rel.role) // Manager_Role
-  rolesMgs: MgsRoles[];
+  rolesMgs?: MgsRoles[];
   @OneToMany(() => RolesRights, rel => rel.role) // Role_Rights
-  rolesRights: RolesRights[];
+  rolesRights?: RolesRights[];
   // 映射
   // @AfterRemove()
   // @AfterUpdate()
@@ -88,7 +89,7 @@ export default class Role {
   // rights: Rights[];
 
   @PrimaryGeneratedColumn()
-  id: number;
+  id?: number;
 
   @Column({
     comment: '角色名称',
@@ -100,17 +101,17 @@ export default class Role {
     comment: '角色描述',
     nullable: true,
   })
-  role_desc: string;
+  role_desc?: string;
 
   @Column({
     comment: '角色是否可用',
     default: true,
   })
-  role_state: boolean;
+  role_state?: boolean;
 
   @CreateDateColumn({ comment: '添加时间' })
-  createdAt: Date;
+  createdAt?: Date;
 
   @UpdateDateColumn({ comment: '更新时间' })
-  updatedAt: Date;
+  updatedAt?: Date;
 }

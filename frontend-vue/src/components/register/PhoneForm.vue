@@ -123,13 +123,9 @@ export default class PhoneForm extends Vue {
   }
   // 查询用户
   private async inquirerUser(rule: any, value: string, cb: any) {
-    try{
-      let res = await this.$api.inquirer({phone: value})
-      if (res.meta.status === 200) cb(new Error('手机号已经存在'))
-      else cb()
-    }catch (e) {
-      console.error(e.message)
-    }
+    let res = await this.$api.inquirer({[rule.field]: value})
+    if (res && res.status === 200 && res.data.meta.code === 200) cb(new Error('手机号已经存在'))
+    else cb()
   }
   // 验证码倒计时
   private countDown() {
@@ -164,13 +160,9 @@ export default class PhoneForm extends Vue {
         return false
       }
       let res = await this.$api.register(this.userInfo)
-      console.log(res);
-      if (res.meta.status === 200) {
+      if (res && res.status === 200) {
         this.$message.success('注册成功')
         await this.jumpTo()
-      } else {
-        this.userInfo.captcha = ''
-        this.$message.error('注册失败: ' + res.meta.msg)
       }
     })
   }

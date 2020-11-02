@@ -5,17 +5,22 @@ import { v4 as uuidv4 } from 'uuid';
 // 自定义 ctx 方法
 module.exports = {
   // 添加统一的返回结果方法
-  sendResult(data: unknown, code = 200, message: string) {
-    const fmt = this.query.fmt ? this.query.fmt : 'rest';
-    if (fmt === 'rest') {
-      this.body = {
-        data: data || null,
-        meta: {
-          msg: message,
-          status: code,
-        },
-      };
-    }
+  sendResult(data: any, status: number, message: string, code: number) {
+    this.status = status || 200;
+    this.body = {
+      data: data || null,
+      meta: {
+        msg: message,
+        code: code || status,
+      },
+    };
+  },
+
+  deleteEmpty(data) {
+    // 删除空数据, 防止保存空字符串
+    Object.keys(data).forEach(key => {
+      data[key] || delete data[key];
+    });
   },
 
   // 数据类型查询

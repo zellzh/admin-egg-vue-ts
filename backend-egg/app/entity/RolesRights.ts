@@ -25,7 +25,7 @@ export default class RolesRights {
   @JoinColumn({ // 关联 Role 的外键
     name: 'role_id',
   })
-  role: Role;
+  role?: Role;
   // 关联 Rights
   @ManyToOne(() => Rights, rights => rights.rightsRoles, {
     cascade: true,
@@ -34,10 +34,10 @@ export default class RolesRights {
   @JoinColumn({ // 关联 Rights 的外键
     name: 'rights_id',
   })
-  rights: Rights;
+  rights?: Rights;
 
   @PrimaryGeneratedColumn()
-  id: number;
+  id?: number;
 
   @Column({
     comment: '关联的角色ID',
@@ -50,8 +50,8 @@ export default class RolesRights {
   rights_id: number;
 
   @CreateDateColumn({ comment: '添加时间' })
-  createdAt: Date;
+  createdAt?: Date;
 
   @UpdateDateColumn({ comment: '更新时间' })
-  updatedAt: Date;
+  updatedAt?: Date;
 }

@@ -24,7 +24,7 @@ module.exports = (app: Application) => {
   // passport 验证处理注册/登录
   app.passport.verify(async (ctx, oauth) => {
     // 1.查询 oauth 表的用户 uid 决定登录还是注册
-    const existsOauth = await ctx.service.oauth.getOauthUser(oauth);
+    const existsOauth = await ctx.service.oauth.retrieve(oauth);
     let loginUser;
 
     // 2.登录/注册第三方用户
@@ -36,9 +36,9 @@ module.exports = (app: Application) => {
       const userinfo = {
         username: ctx.uuidv4(), // 随机用户名
         password: 'com.admin', // 初始密码
-        github: 1,
+        github: true,
       };
-      loginUser = await ctx.service.manager.createUser(userinfo);
+      loginUser = await ctx.service.manager.create(userinfo);
 
       // 2.生成授权信息并保存到数据库
       const oauthInfo = {
@@ -47,7 +47,7 @@ module.exports = (app: Application) => {
         user_id: loginUser.id,
         provider: oauth.provider,
       };
-      await ctx.service.oauth.createOauth(oauthInfo);
+      await ctx.service.oauth.create(oauthInfo);
     }
     // 3.将登录 token 传给前端
     await setToken2Front(loginUser, ctx);

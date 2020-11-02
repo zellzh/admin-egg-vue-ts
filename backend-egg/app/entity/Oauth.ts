@@ -16,7 +16,7 @@ import Manager from './Manager';
 @Entity()
 export default class Oauth {
   // toJSON 方法
-  toJSON() {
+  toJSON?() {
     const hideKey = [ 'access_token', 'createdAt', 'updatedAt' ];
     for (const key in this) {
       if (this.hasOwnProperty(key)) {
@@ -34,15 +34,15 @@ export default class Oauth {
   @JoinColumn({ // 关系字段的拥有者, 也就是外键
     name: 'mg_id',
   })
-  manager: Manager;
+  manager?: Manager;
 
   @PrimaryGeneratedColumn()
-  id: number;
+  id?: number;
 
   @Column({
     comment: '授权令牌',
   })
-  access_token: string;
+  access_token?: string;
 
   @Column({
     comment: '授权的第三方平台',
@@ -52,7 +52,7 @@ export default class Oauth {
   @Column({
     comment: '第三方平台的用户id',
   })
-  uid: number;
+  uid?: number;
 
   @Column({
     comment: '本地用户id, 外键',
@@ -60,8 +60,8 @@ export default class Oauth {
   mg_id: number;
 
   @CreateDateColumn({ comment: '添加时间', type: 'datetime' })
-  createdAt: Date;
+  createdAt?: Date;
 
   @UpdateDateColumn({ comment: '更新时间', type: 'datetime' })
-  updatedAt: Date;
+  updatedAt?: Date;
 }

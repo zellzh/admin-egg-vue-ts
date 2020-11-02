@@ -1,7 +1,11 @@
 // axios 请求数据
-import axios, {AxiosInstance, AxiosResponse} from 'axios'
+import axios, {AxiosError, AxiosInstance, AxiosResponse} from 'axios'
 import router from '@/router'
-import { MessageBox } from 'element-ui'
+import {refreshTokenApi} from '@/api/url'
+import {MessageBox} from 'element-ui'
+import Vue from "vue";
+
+const vue = Vue.prototype
 
 axios.defaults.baseURL = process.env.VUE_APP_BASE_API
 axios.defaults.timeout = 10000
@@ -17,7 +21,7 @@ axios.interceptors.request.use(
     config.headers.Authorization = localStorage.getItem('act');
 
     // 更新 token 的请求则携带 refresh_token
-    if (config.url?.startsWith('refreshtoken')) {
+    if (config.url?.startsWith(refreshTokenApi)) {
       config.headers.Authorization = localStorage.getItem('rft');
     }
     return config
@@ -59,7 +63,7 @@ axios.interceptors.response.use(
 async function updateToken(response: AxiosResponse) {
   console.log('更新 token');
   // 请求 refresh 接口, 更新本地 token
-  const refreshRes = await get('refreshtoken')
+  const refreshRes = await get(refreshTokenApi)
   if (!refreshRes) return
   localStorage.setItem('act', refreshRes.data.access_token)
 
@@ -73,26 +77,36 @@ async function updateToken(response: AxiosResponse) {
 // 封装的 get 请求
 async function get (url: string, params?: object): Promise<any> {
   try {
-    const response = await axios.get(url, { params: params })
-    return response?.data
+    return await axios.get(url, {params: params})
   } catch (e) {
-    console.error(e)
+    errHandle(e)
   }
 }
 
 // 封装的 post 请求
 async function post (url: string, params?: object): Promise<any> {
   try {
-    let response = await axios.post(url, params)
-    return response?.data
+    return await axios.post(url, params)
   } catch (e) {
-    console.error(e)
+    errHandle(e)
   }
 }
 
 // 封装的 all 请求
-function all (requests: AxiosInstance[]) {
-  return axios.all(requests)
+async function all (requests: AxiosInstance[]) {
+  try {
+    return await axios.all(requests)
+  } catch (e) {
+    errHandle(e)
+  }
+}
+
+// 错误处理
+function errHandle(e: AxiosError) {
+  const errData = e.response?.data
+  errData.meta ?
+    vue.$message.error(errData.meta.msg) :
+    vue.$message.error(errData.message)
 }
 
 export default {
