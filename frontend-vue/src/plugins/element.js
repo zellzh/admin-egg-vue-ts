@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import {
-  Button, Icon, Message, Image, Switch, Tooltip, Dialog,
+  Button, Icon, Message, Image, Switch, Tooltip, Dialog, MessageBox, Popover,
   Form, FormItem, Input, Checkbox, Select, Option,
   Table, TableColumn, Pagination,
   Tabs, TabPane,
@@ -10,6 +10,7 @@ import {
 import Scrollbar from 'element-ui/lib/scrollbar'
 
 Vue.prototype.$message = Message // 消息提示方法绑定给Vue实例
+Vue.prototype.$messageBox = MessageBox // 弹框方法绑定给Vue实例
 
 Vue.use(Button)
 Vue.use(Icon)
@@ -17,6 +18,7 @@ Vue.use(Image)
 Vue.use(Switch)
 Vue.use(Tooltip)
 Vue.use(Dialog)
+Vue.use(Popover)
 
 Vue.use(Form)
 Vue.use(FormItem)

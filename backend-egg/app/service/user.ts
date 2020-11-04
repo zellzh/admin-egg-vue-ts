@@ -19,9 +19,9 @@ export default class User extends Service {
           // relations: [ 'oauth', 'mgsRoles', 'roles', 'roles.rights', 'roles.rolesRights' ],
         });
         if (!user) return;
-        if (user.username) return '用户名已存在';
-        if (user.email) return '邮箱已存在';
-        if (user.phone) return '手机号已存在';
+        if (user.username === username) return '用户名已存在';
+        if (user.email === email) return '邮箱已存在';
+        if (user.phone === phone) return '手机号已存在';
       }
     }
     return ctx.repo.Manager.find();
@@ -34,5 +34,11 @@ export default class User extends Service {
     //   .leftJoinAndSelect('rolesRights.rights', 'rights')
     //   .where([{ username }, { phone }, { email }])
     //   .getOne();
+  }
+
+  // 删除用户
+  public async delete(id: number) {
+    const { ctx } = this;
+    return ctx.repo.Manager.delete(id);
   }
 }

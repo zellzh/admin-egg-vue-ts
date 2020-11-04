@@ -27,7 +27,7 @@
           </el-row>
         </el-col>
         <el-col class="bar-right" :span="6">
-          <el-button type="primary" size="small" @click="dialogFormVisible = true">添加用户</el-button>
+          <el-button type="primary" size="small" @click="addUserVisible = true">添加用户</el-button>
           <el-button type="primary" size="small" @click="importUsers">导入用户</el-button>
         </el-col>
       </el-row>
@@ -44,18 +44,22 @@
             :key="prop"
             :prop="prop"
             :label="val">
+          <!-- 状态 -->
           <template scope="scope" v-if="prop === 'userState'">
             <el-switch
-                v-model="scope.row.userState"
+                v-model="scope.row.state"
                 inactive-color="#ff4949"/>
           </template>
+          <!-- 操作 -->
           <template scope="scope" v-else-if="prop === 'userHandle'">
             <el-button size="small" type="primary" icon="el-icon-edit"/>
-            <el-button size="small" type="danger" icon="el-icon-delete"/>
+            <el-button size="small" @click.stop="showPop(scope,$event)" type="danger" icon="el-icon-delete"/>
             <el-tooltip content="分配角色" :enterable="false" placement="top">
               <el-button size="small" type="warning" icon="el-icon-setting"/>
             </el-tooltip>
           </template>
+          <!-- 其他 -->
+          <!-- <template scope="scope" v-else></template>-->
         </el-table-column>
       </el-table>
     </el-card>
@@ -71,10 +75,9 @@
         layout="total, sizes, prev, pager, next, jumper"
         :total="tableData.length"/>
     <!-- 添加用户 -->
-    <el-dialog @open="dialogOnOpen"
-               :lock-scroll="false"
+    <el-dialog @open="addUserOnOpen"
                title="添加用户" width="40%"
-               :visible.sync="dialogFormVisible">
+               :visible.sync="addUserVisible">
       <el-form :model="addUserForm"
                ref="userForm"
                :rules="addUserFormRules"
@@ -90,6 +93,7 @@
         <el-form-item label="密码" prop="password">
           <el-input v-model="addUserForm.password"
                     show-password
+                    ref="pwdInput"
                     prefix-icon="iconfont icon-pwd"
                     placeholder="请输入至少6位的密码"/>
         </el-form-item>
@@ -105,17 +109,41 @@
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormVisible = false">取 消</el-button>
+        <el-button @click="addUserVisible = false">取 消</el-button>
         <el-button type="primary" @click="onAddUser">确 定</el-button>
       </div>
     </el-dialog>
+    <!-- 删除用户 -->
+    <el-popover
+        ref="delPop"
+        :append-to-body="false"
+        placement="top"
+        v-model="delUserVisible">
+    <p>确定删除？</p>
+    <div style="text-align: right; margin: 0;">
+      <el-button size="mini" type="text" @click="delUserVisible = false">取消</el-button>
+      <el-button type="primary" size="mini" @click="onDelUser">确定</el-button>
+    </div>
+    </el-popover>
   </div>
 </template>
 
 <script lang="ts">
 import {Component, Vue, Ref} from 'vue-property-decorator';
 import userReg from "@/assets/userReg";
-import { Form } from "element-ui";
+import {Form, Input, Popover} from "element-ui";
+
+// popperJS 扩展 Popover, 方便自定义
+interface Pop extends Popover{
+  updatePopper: () => void // 刷新/创建 pop
+  referenceElm: Element // 指定绑定的元素
+  popperJS?: {
+    _reference: Element // 绑定元素
+    state: any
+    [prop: string]: any
+  }
+  [prop: string]: any
+}
 
 @Component({
   name: 'Users',
@@ -127,6 +155,8 @@ export default class Users extends Vue {
   /*ref
     ====================================== */
   @Ref() readonly userForm?: Form; // 刚进入页面表单未加载
+  @Ref() readonly pwdInput?: Input & { [prop: string]: any};
+  @Ref() readonly delPop!: Pop;
 
   /*data
     ====================================== */
@@ -161,111 +191,84 @@ export default class Users extends Vue {
     userHandle: '操作',
   }
   // 表格数据
-  tableData = [
-    {
-      username:'jonathan',
-      email:'97606813@qq.com',
-      phone:'17301727164',
-      roleName:'超级管理员',
-      avatarURL: '',
-      userState: true
-    },
-    {
-      username:'it666',
-      email:'97606814@qq.com',
-      phone:'13554499311',
-      roleName:'普通用户',
-      avatarURL: '',
-      userState: false
-    },
-    {
-      username:'it666',
-      email:'97606814@qq.com',
-      phone:'13554499311',
-      roleName:'普通用户',
-      avatarURL: '',
-      userState: false
-    },
-    {
-      username:'it666',
-      email:'97606814@qq.com',
-      phone:'13554499311',
-      roleName:'普通用户',
-      avatarURL: '',
-      userState: false
-    },
-    {
-      username:'it666',
-      email:'97606814@qq.com',
-      phone:'13554499311',
-      roleName:'普通用户',
-      avatarURL: '',
-      userState: false
-    },
-    {
-      username:'it666',
-      email:'97606814@qq.com',
-      phone:'13554499311',
-      roleName:'普通用户',
-      avatarURL: '',
-      userState: false
-    }
-  ]
+  tableData: any[] = []
   // 添加用户的表单数据
-  dialogFormVisible = false
+  addUserVisible = false
   addUserForm = {
     username: '',
     password: '',
     email: '',
     phone: '',
   }
+  // 删除用户
+  delUserVisible = false
+  delUserData: {[prop:string]: any} = {}
 
 
   /*method
    ====================================== */
+  // 用户数据 CRUD
   private async getUserList() {
     const response = await this.$api.getUsers()
     if (!response) return
     console.log(response.data);
+    this.tableData = response.data.data;
   }
-  private onQuery() {
-    console.log(this.queryInfo);
-  }
-  private importUsers() {
+  // 显示 pop
+  private showPop(scope: any, e: MouseEvent) {
+    // pop
+    this.delUserData = scope
 
-  }
-  private exportUsers() {
+    // 获取图标元素, 防止 pop 错位
+    const target = (e.target as Element).children[0] || e.target
+    const pop = this.delPop
+    // 更新 pop, 并绑定当前的元素
+    pop.updatePopper()
+    pop.referenceElm = target;
+    this.delUserVisible = true
+    // 触发 dom 更新, 获取当前的 popperJS, 并绑定到当前元素
+    this.$nextTick(() => {
+      pop.popperJS!._reference = target
+      pop.popperJS!.state.updateBound()
+    });
 
+    // messageBox
+    /*let { id, username, email, phone } = data;
+    username = username || email || phone;
+    this.$messageBox.confirm(`确定删除用户： ${username} ？`, {
+      title: '提示',
+      type: 'warning',
+    }).then(async () => {
+      this.$message.success('删除成功')
+    })*/
   }
-
-  // 分页: 显示条数发生改变时
-  private handleSizeChange(size: string) {
-    console.log(size);
+  // 删除用户
+  private async onDelUser() {
+    const { row, $index } = this.delUserData
+    const res = await this.$api.delUser(row.id)
+    if (res && res.status === 200) {
+      this.$message.success('删除成功')
+      this.tableData.splice($index, 1)
+      this.delUserVisible = false
+    }
   }
-  // 分页: 当前页面发生改变时
-  private handleCurrentChange(curPage: string) {
-    console.log(curPage);
-  }
-
-  // 添加用户弹窗
-  private onAddUser() { // 提交
+  // 添加用户
+  private onAddUser() {
     // 数据预校验
     this.userForm!.validate(async valid => {
-      // if (!valid) {
-      //   this.$message.error('请完善注册信息')
-      //   return false
-      // }
+      if (!valid) {
+        this.$message.error('请完善注册信息')
+        return false
+      }
       let res = await this.$api.addUser(this.addUserForm)
       if (res && res.status === 200) {
+        this.tableData.push(res.data.data)
         this.$message.success('添加成功')
-        this.dialogFormVisible = false
+        this.addUserVisible = false
       }
     })
   }
-  dialogOnOpen() { // 对话框打开事件
-    this.userForm?.resetFields() // 重置表单
-  }
-  // 表单验证
+  // 添加用户表单验证
   addUserFormRules = {
     username: [
       { required: true, message: '用户名不能为空', trigger: 'blur' },
@@ -291,17 +294,48 @@ export default class Users extends Vue {
     if (res && res.status === 200 && res.data.meta.code === 200) cb(new Error('用户已经存在'))
     else cb()
   }
+  // 添加用户打开事件
+  addUserOnOpen() {
+    this.userForm?.resetFields() // 重置表单
+    this.pwdInput?.showPassword || this.pwdInput?.handlePasswordVisible() // 重置密码隐藏
+  }
+
+  private onQuery() {
+    console.log(this.queryInfo);
+  }
+  private importUsers() {
+
+  }
+  private exportUsers() {
+
+  }
+
+  // 分页: 显示条数发生改变时
+  private handleSizeChange(size: string) {
+    console.log(size);
+  }
+  // 分页: 当前页面发生改变时
+  private handleCurrentChange(curPage: string) {
+    console.log(curPage);
+  }
 
   /*LC(life-cycle)
     ====================================== */
   async created() {
     await this.getUserList()
+    // 点击 dom 关闭 pop
+    document.addEventListener('click', e => {
+      this.delUserVisible = false
+    })
   }
 }
 </script>
 
 <style scoped lang="scss">
 ::v-deep.users-container{
+  // pop 绝对定位, 父容器相对定位
+  position: relative;
+
   // 面包屑
   .el-breadcrumb{
     i{
@@ -326,8 +360,8 @@ export default class Users extends Vue {
     // 表格
     .el-table{
       margin-top: 20px;
-
-      .user-handle>.cell{ // 表格宽度
+      // 表格宽度
+      .user-handle>.cell{
         min-width: 180px;
       }
     }
@@ -336,6 +370,11 @@ export default class Users extends Vue {
   // 分页
   .el-pagination{
     margin-top: 20px;
+  }
+
+  // 删除 pop
+  .el-popover{
+    box-shadow: 0 0 5px #bbb !important;
   }
 }
 </style>

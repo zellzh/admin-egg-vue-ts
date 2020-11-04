@@ -29,7 +29,7 @@ export default class Manager {
     const hideKey = [ 'password', 'createdAt', 'updatedAt' ];
     const jsonKey = [ 'roles', 'oauth' ];
     for (const key in this) {
-      if (this.hasOwnProperty(key)) {
+      if (this.hasOwnProperty(key)) { // 调用属性对象的 toJSON()
         if (jsonKey.includes(key)) {
           // Array.isArray(this[key]) ?
           // (<any> this[key]).forEach(item => item.toJSON()) :
@@ -107,6 +107,18 @@ export default class Manager {
     default: false,
   })
   github?: boolean;
+
+  @Column({
+    comment: '用户是否可用(注销)',
+    default: true,
+  })
+  state?: boolean;
+
+  @Column({
+    comment: '用户头像地址',
+    nullable: true,
+  })
+  avatar?: string;
 
   // CreateDateColumn 默认 type=datetime(6), 保留6位小数
   // Column 自定义时, 需要指定 default: () => 'NOW()' | 'CURRENT_TIMESTAMP'

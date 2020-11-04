@@ -14,4 +14,5 @@ export interface Api {
     ================================ */
   getUsers(data?: object): AxiosResponse
   addUser(data: object): AxiosResponse
+  delUser(id: number): AxiosResponse
 }

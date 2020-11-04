@@ -1,8 +1,7 @@
 // axios 请求数据
 import axios, {AxiosError, AxiosInstance, AxiosResponse} from 'axios'
-import router from '@/router'
 import {refreshTokenApi} from '@/api/url'
-import {MessageBox} from 'element-ui'
+// import router from '@/router'
 import Vue from "vue";
 
 const vue = Vue.prototype
@@ -10,6 +9,7 @@ const vue = Vue.prototype
 axios.defaults.baseURL = process.env.VUE_APP_BASE_API
 axios.defaults.timeout = 10000
 axios.defaults.withCredentials = true // 开启携带 cookie
+// const source = axios.CancelToken.source() // 取消请求
 
 // 记录请求数
 let count = 0
@@ -35,7 +35,11 @@ axios.interceptors.response.use(
   response => {
     return response
   },
-  async error => {
+   error => {
+    if (!error.response) {
+      vue.$message.error('可能网络问题, 服务器未响应')
+      return
+    }
     // 40010 - access_token 过期
     if (error.response.status === 401 && error.response.data.meta.status === 40010) {
       // 更新 access_token
@@ -44,17 +48,22 @@ axios.interceptors.response.use(
 
     // 40011 - refresh_token 过期
     if (error.response.status === 401 && error.response.data.meta.status === 40011) {
-      await MessageBox.confirm(
-        '登录已过期, 继续停留在该页面请点击取消',
+      vue.$messageBox.confirm(
+        '登录已过期, 是否重新登录?',
         {
           title: '提示',
           confirmButtonText: '重新登录',
           cancelButtonText: '取消',
           type: 'warning',
-        })
-      // 确定后, 删除 refresh_token, 并刷新页面触发导航守卫跳转
-      localStorage.removeItem('rft')
-      await router.push('/login')
+      }).then(async () => {
+        vue.$message.success('请重新登录')
+        // 确定后, 删除 refresh_token, 并刷新页面触发导航守卫跳转
+        localStorage.removeItem('rft')
+        await vue.$router.push('/login')
+      }).catch(() => {
+        vue.$message.info('已取消, 继续停留在该页面')
+      })
+
     }
     return Promise.reject(error)
   })
@@ -92,6 +101,15 @@ async function post (url: string, params?: object): Promise<any> {
   }
 }
 
+// 封装的 delete 请求
+async function del (url: string, params?: object): Promise<any> {
+  try {
+    return await axios.delete(url, params)
+  } catch (e) {
+    errHandle(e)
+  }
+}
+
 // 封装的 all 请求
 async function all (requests: AxiosInstance[]) {
   try {
@@ -103,8 +121,9 @@ async function all (requests: AxiosInstance[]) {
 
 // 错误处理
 function errHandle(e: AxiosError) {
+  console.log(e);
   const errData = e.response?.data
-  errData.meta ?
+  errData && errData.meta ?
     vue.$message.error(errData.meta.msg) :
     vue.$message.error(errData.message)
 }
@@ -112,5 +131,6 @@ function errHandle(e: AxiosError) {
 export default {
   get,
   post,
+  delete: del,
   all,
 }
