@@ -52,7 +52,7 @@
           </template>
           <!-- 操作 -->
           <template scope="scope" v-else-if="prop === 'userHandle'">
-            <el-button size="small" type="primary" icon="el-icon-edit"/>
+            <el-button @click="openEdit(scope.row)" size="small" type="primary" icon="el-icon-edit"/>
             <el-button size="small" @click.stop="showPop(scope,$event)" type="danger" icon="el-icon-delete"/>
             <el-tooltip content="分配角色" :enterable="false" placement="top">
               <el-button size="small" type="warning" icon="el-icon-setting"/>
@@ -78,32 +78,32 @@
     <el-dialog @open="addUserOnOpen"
                title="添加用户" width="40%"
                :visible.sync="addUserVisible">
-      <el-form :model="addUserForm"
-               ref="userForm"
-               :rules="addUserFormRules"
+      <el-form :model="addUserData"
+               ref="addUserForm"
+               :rules="addUserDataRules"
                label-width="auto"
                size="medium">
         <el-form-item label="用户名" prop="username">
-          <el-input v-model="addUserForm.username"
+          <el-input v-model="addUserData.username"
                     ref="focus"
                     clearable
                     prefix-icon="iconfont icon-user"
                     placeholder="请输入用户名"/>
         </el-form-item>
         <el-form-item label="密码" prop="password">
-          <el-input v-model="addUserForm.password"
+          <el-input v-model="addUserData.password"
                     show-password
                     ref="pwdInput"
                     prefix-icon="iconfont icon-pwd"
                     placeholder="请输入至少6位的密码"/>
         </el-form-item>
         <el-form-item label="邮箱" prop="email">
-          <el-input v-model="addUserForm.email"
+          <el-input v-model="addUserData.email"
                     prefix-icon="iconfont icon-email"
                     placeholder="请输入邮箱"/>
         </el-form-item>
         <el-form-item label="手机" prop="phone">
-          <el-input v-model="addUserForm.phone"
+          <el-input v-model="addUserData.phone"
                     prefix-icon="iconfont icon-phone"
                     placeholder="请输入手机号"/>
         </el-form-item>
@@ -111,6 +111,50 @@
       <div slot="footer" class="dialog-footer">
         <el-button @click="addUserVisible = false">取 消</el-button>
         <el-button type="primary" @click="onAddUser">确 定</el-button>
+      </div>
+    </el-dialog>
+    <!-- 编辑用户 -->
+    <el-dialog title="编辑用户" width="40%"
+               :visible.sync="editUserVisible">
+      <el-form :model="editUserData"
+               ref="editUserForm"
+               hide-required-asterisk
+               :rules="addUserDataRules"
+               label-width="auto"
+               size="medium">
+        <el-form-item label-width="0">
+          <el-upload
+              class="avatar-uploader"
+              :action='avatarPostUrl'
+              accept=".jpeg, .png, .jpg"
+              :show-file-list="false"
+              :on-success="handleAvatarSuccess"
+              :before-upload="beforeAvatarUpload">
+            <img v-if="editUserData.any" :src="''" class="avatar">
+            <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+          </el-upload>
+        </el-form-item>
+        <el-form-item label="用户名" prop="username">
+          <el-input v-model="editUserData.username"
+                    disabled
+                    clearable
+                    prefix-icon="iconfont icon-user"
+                    placeholder="请输入用户名"/>
+        </el-form-item>
+        <el-form-item label="邮箱" prop="email">
+          <el-input v-model="editUserData.email"
+                    prefix-icon="iconfont icon-email"
+                    placeholder="请输入邮箱"/>
+        </el-form-item>
+        <el-form-item label="手机" prop="phone">
+          <el-input v-model="editUserData.phone"
+                    prefix-icon="iconfont icon-phone"
+                    placeholder="请输入手机号"/>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="editUserVisible = false">取 消</el-button>
+        <el-button type="primary" @click="onEditUser">确 定</el-button>
       </div>
     </el-dialog>
     <!-- 删除用户 -->
@@ -132,6 +176,7 @@
 import {Component, Vue, Ref} from 'vue-property-decorator';
 import userReg from "@/assets/userReg";
 import {Form, Input, Popover} from "element-ui";
+import { admin, baseUrl } from "@/api/url";
 
 // popperJS 扩展 Popover, 方便自定义
 interface Pop extends Popover{
@@ -154,7 +199,8 @@ interface Pop extends Popover{
 export default class Users extends Vue {
   /*ref
     ====================================== */
-  @Ref() readonly userForm?: Form; // 刚进入页面表单未加载
+  @Ref() readonly addUserForm?: Form; // 刚进入页面表单未加载
+  @Ref() readonly editUserForm?: Form;
   @Ref() readonly pwdInput?: Input & { [prop: string]: any};
   @Ref() readonly delPop!: Pop;
 
@@ -192,14 +238,22 @@ export default class Users extends Vue {
   }
   // 表格数据
   tableData: any[] = []
+
   // 添加用户的表单数据
   addUserVisible = false
-  addUserForm = {
+  addUserData = {
     username: '',
     password: '',
     email: '',
     phone: '',
   }
+
+  // 编辑用户的表单数据
+  editUserVisible = false
+  editUserData: any = {}
+  // 头像上传地址
+  avatarPostUrl = baseUrl + admin.avatar
+
   // 删除用户
   delUserVisible = false
   delUserData: {[prop:string]: any} = {}
@@ -214,6 +268,7 @@ export default class Users extends Vue {
     console.log(response.data);
     this.tableData = response.data.data;
   }
+
   // 显示 pop
   private showPop(scope: any, e: MouseEvent) {
     // pop
@@ -252,15 +307,16 @@ export default class Users extends Vue {
       this.delUserVisible = false
     }
   }
+
   // 添加用户
   private onAddUser() {
     // 数据预校验
-    this.userForm!.validate(async valid => {
+    this.addUserForm!.validate(async valid => {
       if (!valid) {
         this.$message.error('请完善注册信息')
         return false
       }
-      let res = await this.$api.addUser(this.addUserForm)
+      let res = await this.$api.addUser(this.addUserData)
       if (res && res.status === 200) {
         this.tableData.push(res.data.data)
         this.$message.success('添加成功')
@@ -269,7 +325,7 @@ export default class Users extends Vue {
     })
   }
   // 添加用户表单验证
-  addUserFormRules = {
+  addUserDataRules = {
     username: [
       { required: true, message: '用户名不能为空', trigger: 'blur' },
       { min: 6,  message: '用户名至少6位', trigger: 'blur' },
@@ -296,8 +352,56 @@ export default class Users extends Vue {
   }
   // 添加用户打开事件
   addUserOnOpen() {
-    this.userForm?.resetFields() // 重置表单
-    this.pwdInput?.showPassword || this.pwdInput?.handlePasswordVisible() // 重置密码隐藏
+    // 添加用户会改变表格, 等 dom 更新后再重置, 防止bug
+    this.$nextTick(() => {
+      // 重置表
+      this.addUserForm?.resetFields()
+      // 重置密码隐藏
+      this.pwdInput && (this.pwdInput.passwordVisible = false)
+    })
+  }
+
+  // 编辑用户
+  private async onEditUser() {
+    const res = await this.$api.updateUser(this.editUserData)
+    if (res && res.status === 200) {
+      this.$message.success('更新用户成功!')
+      const idx = this.tableData.findIndex(item => {
+        return item.id === this.editUserData.id
+      })
+      this.tableData.splice(idx, 1, this.editUserData)
+      this.editUserVisible = false
+    }
+  }
+  // 编辑用户打开
+  private openEdit(data: any) {
+    this.editUserVisible = true
+    // 复制数据, 防止修改时表格数据变动
+    this.editUserData = Object.assign({}, data)
+  }
+  // 头像上传前的回调
+  private beforeAvatarUpload(file: any) {
+    console.log(file);
+    const fileTypes = ['jpeg', 'png', 'jpg']
+    const isJPG = fileTypes.find(type => {
+      return file.type.indexOf(type) !== -1
+    })
+    const isLt10M = file.size / 1024 / 1024 < 10;
+
+    if (!isJPG) {
+      this.$message.error('上传头像图片只能是 JPG/PNG/JPEG 格式!');
+    }
+    if (!isLt10M) {
+      this.$message.error('上传头像图片大小不能超过 10MB!');
+    }
+    return isJPG && isLt10M;
+  }
+  // 头像上传成功的回调
+  private handleAvatarSuccess(res: any, file: any) {
+    let path: string = res.data.avatarRelPath
+    path = path.replace(/\\/g, '/')
+    console.log(this.editUserData.avatar);
+    this.editUserData.avatar = path
   }
 
   private onQuery() {
@@ -372,9 +476,38 @@ export default class Users extends Vue {
     margin-top: 20px;
   }
 
+  // 上传头像
+  .avatar-uploader{
+    text-align: center;
+    .el-upload {
+      border: 1px dashed #d9d9d9;
+      border-radius: 6px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      &:hover{
+        border-color: #409EFF;
+      }
+    }
+    .avatar-uploader-icon {
+      font-size: 30px;
+      color: #8c939d;
+      width: 150px;
+      height: 150px;
+      line-height: 150px;
+      text-align: center;
+    }
+    .avatar {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+  }
+
   // 删除 pop
   .el-popover{
-    box-shadow: 0 0 5px #bbb !important;
+    box-shadow: 0 0 3px #bbb !important;
   }
 }
 </style>

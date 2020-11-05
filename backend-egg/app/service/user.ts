@@ -1,12 +1,15 @@
 import { Service } from 'egg';
+import Manager from '../entity/Manager';
 
 export default class User extends Service {
   // 查询用户
   public async retrieve(userInfo?: any) {
     const { ctx } = this;
     if (userInfo) {
-      const { username, phone, email,
-        key, role, type, origin, limit, offset } = userInfo;
+      const {
+        username, phone, email,
+        key, role, type, origin, limit, offset,
+      } = userInfo;
       // 条件查询
       if (key || role || type || origin) {
         console.log(limit, offset);
@@ -40,5 +43,27 @@ export default class User extends Service {
   public async delete(id: number) {
     const { ctx } = this;
     return ctx.repo.Manager.delete(id);
+  }
+
+  // 更新用户
+  public async update(userInfo: Manager) {
+    const { ctx } = this;
+    const { id, email, phone } = userInfo;
+    // 删除空串或者未变更的数据
+    delete userInfo.id;
+    delete userInfo.username;
+    if (email) {
+      const res = await ctx.repo.Manager.findOne({ email });
+      if (res && res.id !== id) return '邮箱已存在';
+    } else {
+      delete userInfo.email;
+    }
+    if (phone) {
+      const res = await ctx.repo.Manager.findOne({ phone });
+      if (res && res.id !== id) return '手机号已存在';
+    } else {
+      delete userInfo.phone;
+    }
+    await ctx.repo.Manager.update(id, userInfo);
   }
 }

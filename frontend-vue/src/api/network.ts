@@ -1,12 +1,11 @@
 // axios 请求数据
 import axios, {AxiosError, AxiosInstance, AxiosResponse} from 'axios'
-import {refreshTokenApi} from '@/api/url'
-// import router from '@/router'
+import {refreshTokenApi, baseUrl} from '@/api/url'
 import Vue from "vue";
 
 const vue = Vue.prototype
 
-axios.defaults.baseURL = process.env.VUE_APP_BASE_API
+axios.defaults.baseURL = baseUrl
 axios.defaults.timeout = 10000
 axios.defaults.withCredentials = true // 开启携带 cookie
 // const source = axios.CancelToken.source() // 取消请求
@@ -110,6 +109,15 @@ async function del (url: string, params?: object): Promise<any> {
   }
 }
 
+// 封装的 delete 请求
+async function put (url: string, params?: object): Promise<any> {
+  try {
+    return await axios.put(url, params)
+  } catch (e) {
+    errHandle(e)
+  }
+}
+
 // 封装的 all 请求
 async function all (requests: AxiosInstance[]) {
   try {
@@ -132,5 +140,6 @@ export default {
   get,
   post,
   delete: del,
+  put,
   all,
 }

@@ -6,6 +6,14 @@ export default (appInfo: EggAppInfo) => {
   // override config from framework / plugin
   // use for cookie sign key, should change to your own and keep security
   config.keys = appInfo.name + '_1599380392260_4313';
+  // 前端接口
+  config.frontendURL = 'http://127.0.0.1:8080';
+
+  // 文件上传配置
+  config.multipart = {
+    mode: 'file',
+    fileSize: '10mb',
+  };
 
   // 注册全局中间件
   config.middleware = [
@@ -26,20 +34,12 @@ export default (appInfo: EggAppInfo) => {
     ],
   };
 
-  // 前端接口
-  config.frontendURL = 'http://127.0.0.1:8080';
-
   // jwt 配置
   config.access_token = {
     expiresIn: '7d', // access_token 有效期
   };
   config.refresh_token = {
     expiresIn: '7d', // refresh_token 有效期
-  };
-
-  // add your special config in here
-  const bizConfig = {
-    sourceUrl: `https://github.com/eggjs/examples/tree/master/${appInfo.name}`,
   };
 
   // 密码加密
@@ -72,6 +72,10 @@ export default (appInfo: EggAppInfo) => {
     defaultViewEngine: 'ejs', // 只有一个模板时配置后, 可以省略 render 后缀和 mapping
   };
 
+  // add your special config in here
+  const bizConfig = {
+    sourceUrl: `https://github.com/eggjs/examples/tree/master/${appInfo.name}`,
+  };
   // the return config will combines to EggAppConfig
   return {
     ...config,

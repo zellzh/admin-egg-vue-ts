@@ -16,4 +16,5 @@ export default {
   getUsers: (data?: object) => network.get(url.users, data),
   addUser: (data: object) => network.post(url.users, data),
   delUser: (id: number) => network.delete(url.users + `/${id}`),
+  updateUser: (data: object) => network.put(url.users, data),
 }
