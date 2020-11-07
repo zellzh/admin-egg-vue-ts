@@ -46,12 +46,12 @@ export default class User extends Service {
   }
 
   // 更新用户
-  public async update(userInfo: Manager) {
+  public async update(id: number, userInfo: Partial<Manager>) {
     const { ctx } = this;
-    const { id, email, phone } = userInfo;
+    const { email, phone, avatar, state } = userInfo;
     // 删除空串或者未变更的数据
-    delete userInfo.id;
     delete userInfo.username;
+    avatar || delete userInfo.avatar;
     if (email) {
       const res = await ctx.repo.Manager.findOne({ email });
       if (res && res.id !== id) return '邮箱已存在';
@@ -64,6 +64,11 @@ export default class User extends Service {
     } else {
       delete userInfo.phone;
     }
-    await ctx.repo.Manager.update(id, userInfo);
+    await ctx.repo.Manager.update(id, {
+      email,
+      phone,
+      avatar,
+      state,
+    });
   }
 }

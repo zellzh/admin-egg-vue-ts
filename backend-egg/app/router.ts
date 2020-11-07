@@ -18,6 +18,8 @@ export default (app: Application) => {
   router.get('/api/v1/users', controller.user.getUser);
   router.post('/api/v1/users', controller.user.addUser);
   router.delete('/api/v1/users/:id', controller.user.delUser);
-  router.put('/api/v1/users', controller.user.updateUser);
-  router.post('/api/v1/users/avatars', controller.user.uploadAvatar);
+  router.put('/api/v1/users/:id', controller.user.updateUser);
+  router.post('/api/v1/users/avatars', controller.user.uploadUserAvatar);
+  router.post('/api/v1/users/excels', controller.user.uploadUserExcel);
+  router.get('/api/v1/users/excels', controller.user.exportUserExcel);
 };

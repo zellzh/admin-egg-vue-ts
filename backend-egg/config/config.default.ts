@@ -13,6 +13,10 @@ export default (appInfo: EggAppInfo) => {
   config.multipart = {
     mode: 'file',
     fileSize: '10mb',
+    fileExtensions: [ // 追加支持的文件
+      '.xls',
+      '.xlsx',
+    ],
   };
 
   // 注册全局中间件

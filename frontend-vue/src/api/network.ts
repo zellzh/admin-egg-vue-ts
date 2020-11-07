@@ -1,5 +1,5 @@
 // axios 请求数据
-import axios, {AxiosError, AxiosInstance, AxiosResponse} from 'axios'
+import axios, {AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse} from 'axios'
 import {refreshTokenApi, baseUrl} from '@/api/url'
 import Vue from "vue";
 
@@ -83,36 +83,36 @@ async function updateToken(response: AxiosResponse) {
 }
 
 // 封装的 get 请求
-async function get (url: string, params?: object): Promise<any> {
+async function get (url: string, params?: any, opts?: AxiosRequestConfig): Promise<any> {
   try {
-    return await axios.get(url, {params: params})
+    return await axios.get(url, {params: params, ...opts})
   } catch (e) {
     errHandle(e)
   }
 }
 
 // 封装的 post 请求
-async function post (url: string, params?: object): Promise<any> {
+async function post (url: string, params?: any, opts?: AxiosRequestConfig): Promise<any> {
   try {
-    return await axios.post(url, params)
+    return await axios.post(url, params, opts)
   } catch (e) {
     errHandle(e)
   }
 }
 
 // 封装的 delete 请求
-async function del (url: string, params?: object): Promise<any> {
+async function del (url: string, opts?: AxiosRequestConfig): Promise<any> {
   try {
-    return await axios.delete(url, params)
+    return await axios.delete(url, opts)
   } catch (e) {
     errHandle(e)
   }
 }
 
-// 封装的 delete 请求
-async function put (url: string, params?: object): Promise<any> {
+// 封装的 put 请求
+async function put (url: string, params?: any, opts?: AxiosRequestConfig): Promise<any> {
   try {
-    return await axios.put(url, params)
+    return await axios.put(url, params, opts)
   } catch (e) {
     errHandle(e)
   }

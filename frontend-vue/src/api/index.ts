@@ -16,5 +16,6 @@ export default {
   getUsers: (data?: object) => network.get(url.users, data),
   addUser: (data: object) => network.post(url.users, data),
   delUser: (id: number) => network.delete(url.users + `/${id}`),
-  updateUser: (data: object) => network.put(url.users, data),
+  updateUser: (id: number, data: object) => network.put(url.users + `/${id}`, data),
+  exportUsers: () => network.get(url.excel, null, { responseType: 'blob' }),
 }

@@ -20,7 +20,8 @@ export const refreshTokenApi = 'refresh_token';
 // admin 接口
 export const admin = {
   users: 'api/v1/users',
-  avatar: 'api/v1/users/avatars'
+  avatar: 'api/v1/users/avatars',
+  excel: 'api/v1/users/excels',
 }
 
 export default {

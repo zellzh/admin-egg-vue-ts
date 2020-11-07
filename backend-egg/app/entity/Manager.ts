@@ -13,7 +13,6 @@ import {
   OneToMany,
   // ManyToMany,
   // JoinTable,
-  // AfterLoad,
   // AfterInsert,
   // AfterRemove,
   // AfterUpdate,
@@ -28,6 +27,7 @@ export default class Manager {
   toJSON?() {
     const hideKey = [ 'password', 'createdAt', 'updatedAt' ];
     const jsonKey = [ 'roles', 'oauth' ];
+    this.baseUrl = 'http://127.0.0.1:7001'; // 设置后端地址
     for (const key in this) {
       if (this.hasOwnProperty(key)) { // 调用属性对象的 toJSON()
         if (jsonKey.includes(key)) {
@@ -41,6 +41,7 @@ export default class Manager {
     }
     return this;
   }
+  baseUrl?: string;
 
   // 级联: ManyToMany 和 OneToMany 结合使用, 可以快捷查询中间表
   @OneToMany(() => Oauth, oauth => oauth.manager) // 一对多 Oauth

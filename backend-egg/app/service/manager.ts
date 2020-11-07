@@ -3,7 +3,7 @@ import Manager from '../entity/Manager';
 
 export default class ManagerService extends Service {
   // 保存用户数据
-  public async create(user: Manager) {
+  public async create(user: Partial<Manager>) {
     const { ctx } = this;
     // 删除空串, 防止不必要的bug
     ctx.deleteEmpty(user);
@@ -15,7 +15,7 @@ export default class ManagerService extends Service {
   }
 
   // 查询用户
-  public async retrieve(user: Manager) {
+  public async retrieve(user: Partial<Manager>) {
     const { ctx } = this;
     const { username, phone, email } = user;
     return ctx.repo.Manager.findOne({

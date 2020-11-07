@@ -54,27 +54,28 @@ export default class UserController extends Controller {
   // 更新用户
   public async updateUser() {
     const { ctx } = this;
+    const { id } = ctx.params;
     const userInfo = ctx.request.body;
     try {
-      const updateInfo = await ctx.service.user.update(userInfo);
+      const updateInfo = await ctx.service.user.update(id, userInfo);
       updateInfo ?
         ctx.sendResult(null, 400, updateInfo) :
         ctx.sendResult(null, 200, '更新成功');
     } catch (e) {
-      ctx.logger.error(e.message);
+      ctx.logger.error(e);
       ctx.sendResult(null, 500, '更新失败: 内部错误!');
     }
   }
 
   // 接收上传的头像
-  public async uploadAvatar() {
+  public async uploadUserAvatar() {
     const { ctx } = this;
     // 1.获取长传的文件
     const file = ctx.request.files[0];
     // 2.生成唯一文件名
     const fileName = ctx.uuidv4() + path.extname(file.filename);
-    // 3.生成文件相对路径, 并组成绝对路径
-    const relPath = path.join('/public/avatar', fileName);
+    // 3.生成文件相对路径, 并组成绝对路径(统一斜杠为 '/')
+    const relPath = path.join('/public/avatar', fileName).split(path.sep).join('/');
     const absPath = path.join(this.config.baseDir, 'app', relPath);
     // 4.从缓存读取文件和写入到绝对路径中
     try {
@@ -85,6 +86,80 @@ export default class UserController extends Controller {
     } catch (e) {
       ctx.logger.error(e);
       ctx.sendResult(null, 500, '内部错误: 上传头像失败!');
+    }
+  }
+
+  // 接收处理上传的用户excel
+  public async uploadUserExcel() {
+    const { ctx } = this;
+    // 注意在上传文件配置中添加文件类型
+    const file = ctx.request.files[0];
+    const ormRunner = ctx.ormConnection.createQueryRunner();
+    try {
+      // 1.导入 excel 表格(file / buffer)
+      const workSheets = ctx.xlsx.parse(file.filepath); // file
+
+      // 2.将数组结果转成需要的用户对象格式
+      const userSheet = workSheets[0].data;
+      if (userSheet.length <= 1) return ctx.sendResult(null, 400, 'excel没有数据'); // 空数据返回
+      const [ fieldArr, ...dataArr ] = userSheet;
+      // 3.开启事务, 保证统一保存
+      await ormRunner.startTransaction();
+      const users: any[] = [];
+      for (const data of dataArr) {
+        const user = data.reduce((obj, val, idx) => {
+          obj[fieldArr[idx]] = val;
+          return obj;
+        }, {});
+        // 查询数据
+        const res = await ctx.service.manager.retrieve(user);
+        if (res) { // 数据存在则返回
+          await ormRunner.rollbackTransaction();
+          return ctx.sendResult(user, 400, '用户重复');
+        }
+        // 将数据保存到数据库
+        const dbUser = await ctx.service.manager.create(user);
+        users.push(dbUser);
+      }
+      await ormRunner.commitTransaction();
+      ctx.sendResult(users, 200, '导入用户excel成功!');
+    } catch (e) {
+      await ormRunner.rollbackTransaction();
+      ctx.logger.error(e);
+      ctx.sendResult(null, 500, '内部错误: 导入用户失败!');
+    }
+  }
+  // 后端导出 excel
+  public async exportUserExcel() {
+    const { ctx } = this;
+    try {
+      // 1.从数据库获取数据
+      const users = await ctx.service.user.retrieve();
+      if (!Array.isArray(users)) return;
+      // 2.将数据处理成 excel 的数组格式
+      let data: any = [];
+      if (users.length) {
+        const fieldArr = Object.keys(users[0]);
+        data = users.map(item => {
+          return fieldArr.map(key => {
+            return item[key];
+          });
+        });
+        data.unshift(fieldArr);
+      }
+      // 3.将数据保存成buffer, 传给前端
+      const buf = ctx.xlsx.build([{ name: 'exportTest', data }]);
+      // 设置数据类型
+      ctx.response.type = ctx.getMime('.xlsx');
+      // 修改文件名称
+      ctx.response.attachment('userTest.xlsx');
+      // 也可以手动设置响应头
+      // ctx.set('Content-Type', ctx.getMime('.xlsx'));
+      // ctx.set('Content-disposition', 'attachment; filename=userTest.xlsx');
+      ctx.body = buf;
+    } catch (e) {
+      ctx.logger.error(e);
+      ctx.sendResult(null, 500, '内部错误: 导出失败!');
     }
   }
 }

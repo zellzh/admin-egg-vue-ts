@@ -23,12 +23,26 @@
             <el-col :span="6">
               <el-button type="primary" size="small" @click="onQuery">查询</el-button>
               <el-button type="primary" size="small" @click="exportUsers">导出结果</el-button>
+              <!-- 后端导出数据(a 标签直接下载)
+              <a :href='excelPostUrl'>
+                <el-button type="primary" size="small" @click="exportUsers">导出结果</el-button>
+              </a>
+              -->
             </el-col>
           </el-row>
         </el-col>
         <el-col class="bar-right" :span="6">
           <el-button type="primary" size="small" @click="addUserVisible = true">添加用户</el-button>
-          <el-button type="primary" size="small" @click="importUsers">导入用户</el-button>
+          <el-upload
+              class="excel-uploader"
+              :action="excelPostUrl"
+              accept=".xls, .xlsx"
+              :show-file-list="false"
+              :on-success="handleExcelSuccess"
+              :on-error="handleExcelError"
+              :before-upload="beforeExcelUpload">
+            <el-button size="small" type="primary">导入用户</el-button>
+          </el-upload>
         </el-col>
       </el-row>
       <!-- 表格区域 -->
@@ -48,6 +62,7 @@
           <template scope="scope" v-if="prop === 'userState'">
             <el-switch
                 v-model="scope.row.state"
+                @change="switchUserState(scope.row)"
                 inactive-color="#ff4949"/>
           </template>
           <!-- 操作 -->
@@ -115,6 +130,7 @@
     </el-dialog>
     <!-- 编辑用户 -->
     <el-dialog title="编辑用户" width="40%"
+               @opened="editOpened"
                :visible.sync="editUserVisible">
       <el-form :model="editUserData"
                ref="editUserForm"
@@ -129,8 +145,9 @@
               accept=".jpeg, .png, .jpg"
               :show-file-list="false"
               :on-success="handleAvatarSuccess"
+              :on-error="handleAvatarError"
               :before-upload="beforeAvatarUpload">
-            <img v-if="editUserData.any" :src="''" class="avatar">
+            <img v-if="avatarUrl" :src="avatarUrl" class="avatar">
             <i v-else class="el-icon-plus avatar-uploader-icon"></i>
           </el-upload>
         </el-form-item>
@@ -173,10 +190,13 @@
 </template>
 
 <script lang="ts">
-import {Component, Vue, Ref} from 'vue-property-decorator';
+import {Component, Ref, Vue, Watch} from 'vue-property-decorator';
 import userReg from "@/assets/userReg";
 import {Form, Input, Popover} from "element-ui";
-import { admin, baseUrl } from "@/api/url";
+import {admin, baseUrl} from "@/api/url";
+// import fileDownload from 'js-file-download'
+import xlsx from 'xlsx';
+import {saveAs} from 'file-saver';
 
 // popperJS 扩展 Popover, 方便自定义
 interface Pop extends Popover{
@@ -206,6 +226,18 @@ export default class Users extends Vue {
 
   /*data
     ====================================== */
+  // 表头
+  tableField = {
+    username: '用户名',
+    email: '邮箱',
+    phone: '用户名',
+    roleName: '角色',
+    userState: '状态',
+    userHandle: '操作',
+  }
+  // 表格数据
+  tableData: any[] = []
+
   // 搜索选择框
   searchSelect = {
     role: '-角色类型-',
@@ -227,17 +259,8 @@ export default class Users extends Vue {
     limit: 2,
     offset: 1,
   }
-  // 表头
-  tableField = {
-    username: '用户名',
-    email: '邮箱',
-    phone: '用户名',
-    roleName: '角色',
-    userState: '状态',
-    userHandle: '操作',
-  }
-  // 表格数据
-  tableData: any[] = []
+  // 导入用户URL
+  excelPostUrl = baseUrl + admin.excel
 
   // 添加用户的表单数据
   addUserVisible = false
@@ -251,13 +274,19 @@ export default class Users extends Vue {
   // 编辑用户的表单数据
   editUserVisible = false
   editUserData: any = {}
-  // 头像上传地址
+  isEditChange = false
+  // 头像上传URL
   avatarPostUrl = baseUrl + admin.avatar
 
   // 删除用户
   delUserVisible = false
   delUserData: {[prop:string]: any} = {}
 
+  /*computed
+   ====================================== */
+  private get avatarUrl() {
+    return this.editUserData.baseUrl + this.editUserData.avatar
+  }
 
   /*method
    ====================================== */
@@ -269,7 +298,7 @@ export default class Users extends Vue {
     this.tableData = response.data.data;
   }
 
-  // 显示 pop
+  // 显示删除 pop
   private showPop(scope: any, e: MouseEvent) {
     // pop
     this.delUserData = scope
@@ -361,9 +390,23 @@ export default class Users extends Vue {
     })
   }
 
+  // 编辑用户打开
+  private openEdit(data: any) {
+    this.editUserVisible = true
+    // 复制数据, 防止修改时表格数据变动
+    this.editUserData = Object.assign({}, data)
+  }
+  // 编辑 dialog 打开后的回调
+  private editOpened() {
+    // 编辑用户数据初始化
+    this.isEditChange = false
+  }
   // 编辑用户
   private async onEditUser() {
-    const res = await this.$api.updateUser(this.editUserData)
+    const { id, ...user } = this.editUserData
+    // 数据未变更则不提交给后端
+    if (!this.isEditChange) return this.editUserVisible = false
+    const res = await this.$api.updateUser(id, user)
     if (res && res.status === 200) {
       this.$message.success('更新用户成功!')
       const idx = this.tableData.findIndex(item => {
@@ -373,45 +416,113 @@ export default class Users extends Vue {
       this.editUserVisible = false
     }
   }
-  // 编辑用户打开
-  private openEdit(data: any) {
-    this.editUserVisible = true
-    // 复制数据, 防止修改时表格数据变动
-    this.editUserData = Object.assign({}, data)
+  // 切换状态
+  private async switchUserState(row: any) {
+    const { id, ...user } = row
+    const res = await this.$api.updateUser(id, user)
+    if (res && res.status === 200) {
+      this.$message.success('更新用户成功!')
+      const idx = this.tableData.findIndex(item => {
+        return item.id === this.editUserData.id
+      })
+      this.tableData.splice(idx, 1, this.editUserData)
+      this.editUserVisible = false
+    }
   }
   // 头像上传前的回调
   private beforeAvatarUpload(file: any) {
-    console.log(file);
     const fileTypes = ['jpeg', 'png', 'jpg']
-    const isJPG = fileTypes.find(type => {
+    const isAvatar = fileTypes.find(type => {
       return file.type.indexOf(type) !== -1
     })
     const isLt10M = file.size / 1024 / 1024 < 10;
 
-    if (!isJPG) {
+    if (!isAvatar) {
       this.$message.error('上传头像图片只能是 JPG/PNG/JPEG 格式!');
     }
     if (!isLt10M) {
       this.$message.error('上传头像图片大小不能超过 10MB!');
     }
-    return isJPG && isLt10M;
+    return isAvatar && isLt10M;
   }
   // 头像上传成功的回调
   private handleAvatarSuccess(res: any, file: any) {
-    let path: string = res.data.avatarRelPath
-    path = path.replace(/\\/g, '/')
-    console.log(this.editUserData.avatar);
-    this.editUserData.avatar = path
+    this.editUserData.avatar = res.data.avatarRelPath
+  }
+  // 头像上传失败的回调
+  private handleAvatarError(err: any) {
+    const msg = JSON.parse(err).meta.msg
+    this.$message.error(msg)
   }
 
+  // 搜索栏
   private onQuery() {
     console.log(this.queryInfo);
   }
-  private importUsers() {
+  private async exportUsers() {
+    /*
+     * 后端导出文件给前端下载:
+     *  - 除了直接使用 a 标签接收后端传来的文件
+     *  - 还可以使用前端 blob 接收下载后端传出的 buffer
+     * 区别:
+     *  - 使用 a 标签, 后端必须在响应头指定文件类型|文件名等信息
+     *  - 使用 blob, 则可以自定义, 也使用 js-file-download 库
+     */
+    // const res = await this.$api.exportUsers()
+    // fileDownload(res.data, 'userTest.xlsx')
 
+    /*
+     * 前端直接导出文件
+     * 可以使用 xlsx 库
+     */
+    // 1.将对象数据转换为 excel 的数组格式
+    const users = this.tableData
+    let data: any = [];
+    if (users.length) {
+      const fieldArr = Object.keys(users[0]);
+      data = users.map(item => {
+        return fieldArr.map(key => {
+          return item[key];
+        });
+      });
+      data.unshift(fieldArr);
+    }
+    // 1.创建一个新的 workbook
+    const wb = xlsx.utils.book_new()
+    // 2.根据数据生成一个张 sheet
+    const sheet = xlsx.utils.aoa_to_sheet(data)
+    // 3.将 sheet 插入到 wb
+    xlsx.utils.book_append_sheet(wb, sheet, 'users')
+    // 4.保存下载
+    // xlsx.writeFile(wb, 'users.xlsx') // 快速下载, 有兼容问题
+    const opts = { bookType:'xlsx', bookSST:false, type: 'array' };
+    const out = xlsx.write(wb, opts as any);
+    saveAs(new Blob([out],{type:"application/octet-stream"}), "users.xlsx");
   }
-  private exportUsers() {
+  // 导入用户之前的回调
+  private beforeExcelUpload(file: any) {
+    const isExcel = file.type.includes('excel') || file.type.includes('spreadsheetml')
+    const isLt10M = file.size / 1024 / 1024 < 10;
 
+    if (!isExcel) {
+      this.$message.error('导入用户只能是 XLS/XLSX 格式!');
+    }
+    if (!isLt10M) {
+      this.$message.error('导入用户大小不能超过 10MB!');
+    }
+    return isExcel && isLt10M;
+  }
+  // 导入用户成功的回调
+  private handleExcelSuccess(res: any) {
+
+    this.$message.success('导入成功')
+  }
+  // 导入失败的回调
+  private handleExcelError(err: any) {
+    const res = JSON.parse(err.message).data
+    if (!res) return this.$message.error('导入失败: 导入用户存在重复!')
+    const { username, email, phone } = res
+    this.$message.error(`导入失败: 用户 ${username||email||phone} 已存在!`)
   }
 
   // 分页: 显示条数发生改变时
@@ -421,6 +532,14 @@ export default class Users extends Vue {
   // 分页: 当前页面发生改变时
   private handleCurrentChange(curPage: string) {
     console.log(curPage);
+  }
+
+  /*watch
+    ====================================== */
+  // 观察编辑数据是否改变
+  @Watch('editUserData', { deep: true })
+  editSubmit(nv: any, ov: any) {
+    if (nv) this.isEditChange = true
   }
 
   /*LC(life-cycle)
@@ -458,6 +577,11 @@ export default class Users extends Vue {
       .bar-right{
         min-width: 200px ;
         text-align: right;
+
+        .excel-uploader{
+          display: inline-block;
+          margin-left: 10px;
+        }
       }
     }
 
@@ -480,6 +604,8 @@ export default class Users extends Vue {
   .avatar-uploader{
     text-align: center;
     .el-upload {
+      width: 150px;
+      height: 150px;
       border: 1px dashed #d9d9d9;
       border-radius: 6px;
       cursor: pointer;
@@ -492,15 +618,15 @@ export default class Users extends Vue {
     .avatar-uploader-icon {
       font-size: 30px;
       color: #8c939d;
-      width: 150px;
-      height: 150px;
-      line-height: 150px;
+      width: 100%;
+      height: 100%;
+      line-height: 100%;
       text-align: center;
     }
     .avatar {
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: contain;
       display: block;
     }
   }

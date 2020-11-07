@@ -1,6 +1,7 @@
 import mime = require('mime-types');
 import jwt = require('jsonwebtoken');
 import { v4 as uuidv4 } from 'uuid';
+import xlsx from 'node-xlsx';
 
 // 自定义 ctx 方法
 module.exports = {
@@ -15,9 +16,8 @@ module.exports = {
       },
     };
   },
-
-  deleteEmpty(data) {
-    // 删除空数据, 防止保存空字符串
+  // 删除空数据, 防止保存空字符串
+  deleteEmpty<T>(data: T) {
     Object.keys(data).forEach(key => {
       data[key] || delete data[key];
     });
@@ -27,14 +27,10 @@ module.exports = {
   getMime(val: string): string|false {
     return mime.lookup(val);
   },
-
   // jwt api
-  jwt: {
-    sign: jwt.sign,
-    verify: jwt.verify,
-    decode: jwt.decode,
-  },
-
-  // uuid
+  jwt,
+  // uuid api
   uuidv4,
+  // node-xlsx
+  xlsx,
 };
