@@ -104,10 +104,16 @@ export default class Manager {
   password: string;
 
   @Column({
-    comment: '是否是github登录',
+    comment: '是否github登录',
     default: false,
   })
   github?: boolean;
+
+  @Column({
+    comment: '是否本地注册',
+    default: true,
+  })
+  local?: boolean;
 
   @Column({
     comment: '用户是否可用(注销)',

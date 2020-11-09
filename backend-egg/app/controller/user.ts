@@ -9,8 +9,9 @@ export default class UserController extends Controller {
   // 获取用户
   public async getUser() {
     const { ctx } = this;
+    const userInfo = ctx.query;
     try {
-      const users = await ctx.service.user.retrieve();
+      const users = await ctx.service.user.retrieve(userInfo);
       ctx.sendResult(users, 200, '获取成功');
     } catch (e) {
       ctx.logger.error(e);
@@ -41,9 +42,9 @@ export default class UserController extends Controller {
   // 删除用户
   public async delUser() {
     const { ctx } = this;
-    const userInfo = ctx.params;
+    const { id } = ctx.params;
     try {
-      await ctx.service.user.delete(userInfo);
+      await ctx.service.user.delete(parseInt(id));
       ctx.sendResult(null, 200, '删除成功');
     } catch (e) {
       ctx.logger.error(e);
@@ -57,7 +58,7 @@ export default class UserController extends Controller {
     const { id } = ctx.params;
     const userInfo = ctx.request.body;
     try {
-      const updateInfo = await ctx.service.user.update(id, userInfo);
+      const updateInfo = await ctx.service.user.update(parseInt(id), userInfo);
       updateInfo ?
         ctx.sendResult(null, 400, updateInfo) :
         ctx.sendResult(null, 200, '更新成功');

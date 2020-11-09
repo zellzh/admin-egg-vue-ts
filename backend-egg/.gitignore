@@ -18,3 +18,4 @@ app/**/*.map
 test/**/*.map
 config/**/*.map
 config/config.local.ts
+app/public/avatar

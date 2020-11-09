@@ -13,8 +13,15 @@
         <el-col class="bar-left" :span="18">
           <el-row :gutter="10" type="flex" justify="space-between">
             <el-col :span="4" v-for="(val, prop) in searchSelect" :key="prop">
-              <el-select size="small" v-model="queryInfo[prop]" :placeholder="val">
-                <el-option v-for="opt of searchOpts[prop]" :key="opt" :label="opt" :value="opt"/>
+              <el-select size="small"
+                         clearable
+                         v-model="queryInfo[prop]"
+                         :placeholder="val"
+                         @change="changeCb">
+                <el-option v-for="opt in searchOpts[prop]"
+                           :key="opt.label"
+                           :label="opt.label"
+                           :value="opt.val"/>
               </el-select>
             </el-col>
             <el-col :span="6">
@@ -84,9 +91,9 @@
         :pager-count="5"
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
-        :current-page="queryInfo.offset"
+        :current-page.sync="queryInfo.offset"
         :page-sizes="[5, 10, 15, 20, 25]"
-        :page-size="queryInfo.limit"
+        :page-size.sync="queryInfo.limit"
         layout="total, sizes, prev, pager, next, jumper"
         :total="tableData.length"/>
     <!-- 添加用户 -->
@@ -240,15 +247,15 @@ export default class Users extends Vue {
 
   // 搜索选择框
   searchSelect = {
-    role: '-角色类型-',
     type: '-账号类型-',
     origin: '-账号来源-',
+    role: '-角色类型-',
   }
   // 下拉选项
   searchOpts = {
-    role: [ '管理员', '项目经理', '主管', '开发人员' ],
-    origin: [ 'local', 'github' ],
-    type: [ '用户名', '手机号', '邮箱' ],
+    role: [{label: '管理员', val: '管理员'}, {label: '项目经理', val: '项目经理'}],
+    origin: [{label: '本地注册', val: 'local'}, {label: 'Git登录', val: 'github'}],
+    type: [{label: '用户名', val: 'username'}, {label: '邮箱', val: 'email'}, {label: '手机号', val: 'phone'}],
   }
   // 查询数据
   queryInfo = {
@@ -256,7 +263,7 @@ export default class Users extends Vue {
     type: '',
     origin: '',
     key: '',
-    limit: 2,
+    limit: 5,
     offset: 1,
   }
   // 导入用户URL
@@ -421,12 +428,7 @@ export default class Users extends Vue {
     const { id, ...user } = row
     const res = await this.$api.updateUser(id, user)
     if (res && res.status === 200) {
-      this.$message.success('更新用户成功!')
-      const idx = this.tableData.findIndex(item => {
-        return item.id === this.editUserData.id
-      })
-      this.tableData.splice(idx, 1, this.editUserData)
-      this.editUserVisible = false
+      this.$message.success('更新状态成功!')
     }
   }
   // 头像上传前的回调
@@ -456,8 +458,14 @@ export default class Users extends Vue {
   }
 
   // 搜索栏
-  private onQuery() {
-    console.log(this.queryInfo);
+  private async onQuery() {
+    const searchData = Object.assign({}, this.queryInfo)
+    searchData.offset = 1
+    const res = await this.$api.getUsers(searchData)
+    if (res && res.status === 200) {
+      console.log(res.data.data);
+      // this.tableData = res.data.data
+    }
   }
   private async exportUsers() {
     /*
@@ -498,6 +506,9 @@ export default class Users extends Vue {
     const opts = { bookType:'xlsx', bookSST:false, type: 'array' };
     const out = xlsx.write(wb, opts as any);
     saveAs(new Blob([out],{type:"application/octet-stream"}), "users.xlsx");
+  }
+  private changeCb(cur: any) {
+
   }
   // 导入用户之前的回调
   private beforeExcelUpload(file: any) {
