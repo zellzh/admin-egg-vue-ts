@@ -16,8 +16,7 @@
               <el-select size="small"
                          clearable
                          v-model="queryInfo[prop]"
-                         :placeholder="val"
-                         @change="changeCb">
+                         :placeholder="val">
                 <el-option v-for="opt in searchOpts[prop]"
                            :key="opt.label"
                            :label="opt.label"
@@ -25,11 +24,15 @@
               </el-select>
             </el-col>
             <el-col :span="6">
-              <el-input size="small" v-model="queryInfo.key" placeholder="请输入搜索关键字"/>
+              <el-input size="small"
+                        v-model="queryInfo.key"
+                        clearable
+                        @clear="clearCb"
+                        placeholder="请输入搜索关键字"/>
             </el-col>
             <el-col :span="6">
               <el-button type="primary" size="small" @click="onQuery">查询</el-button>
-              <el-button type="primary" size="small" @click="exportUsers">导出结果</el-button>
+              <el-button type="primary" size="small" @click="exportUsers">导出当前结果</el-button>
               <!-- 后端导出数据(a 标签直接下载)
               <a :href='excelPostUrl'>
                 <el-button type="primary" size="small" @click="exportUsers">导出结果</el-button>
@@ -75,7 +78,7 @@
           <!-- 操作 -->
           <template scope="scope" v-else-if="prop === 'userHandle'">
             <el-button @click="openEdit(scope.row)" size="small" type="primary" icon="el-icon-edit"/>
-            <el-button size="small" @click.stop="showPop(scope,$event)" type="danger" icon="el-icon-delete"/>
+            <el-button size="small" @click.stop="showPop(scope.row,$event)" type="danger" icon="el-icon-delete"/>
             <el-tooltip content="分配角色" :enterable="false" placement="top">
               <el-button size="small" type="warning" icon="el-icon-setting"/>
             </el-tooltip>
@@ -95,7 +98,7 @@
         :page-sizes="[5, 10, 15, 20, 25]"
         :page-size.sync="queryInfo.limit"
         layout="total, sizes, prev, pager, next, jumper"
-        :total="tableData.length"/>
+        :total="totalCount"/>
     <!-- 添加用户 -->
     <el-dialog @open="addUserOnOpen"
                title="添加用户" width="40%"
@@ -154,7 +157,7 @@
               :on-success="handleAvatarSuccess"
               :on-error="handleAvatarError"
               :before-upload="beforeAvatarUpload">
-            <img v-if="avatarUrl" :src="avatarUrl" class="avatar">
+            <img v-if="avatarUrl" :src="avatarUrl" class="avatar" alt="">
             <i v-else class="el-icon-plus avatar-uploader-icon"></i>
           </el-upload>
         </el-form-item>
@@ -266,6 +269,8 @@ export default class Users extends Vue {
     limit: 5,
     offset: 1,
   }
+  // 数据总量
+  totalCount = 0
   // 导入用户URL
   excelPostUrl = baseUrl + admin.excel
 
@@ -287,10 +292,11 @@ export default class Users extends Vue {
 
   // 删除用户
   delUserVisible = false
-  delUserData: {[prop:string]: any} = {}
+  delUserData: any = {}
 
   /*computed
    ====================================== */
+  // 头像回显URL
   private get avatarUrl() {
     return this.editUserData.baseUrl + this.editUserData.avatar
   }
@@ -299,16 +305,18 @@ export default class Users extends Vue {
    ====================================== */
   // 用户数据 CRUD
   private async getUserList() {
-    const response = await this.$api.getUsers()
-    if (!response) return
-    console.log(response.data);
-    this.tableData = response.data.data;
+    const response = await this.$api.getUsers(this.queryInfo)
+    if (response && response.status === 200) {
+      const data = response.data.data
+      this.tableData = data.users;
+      this.totalCount = data.count;
+    }
   }
 
   // 显示删除 pop
-  private showPop(scope: any, e: MouseEvent) {
+  private showPop(row: any, e: MouseEvent) {
     // pop
-    this.delUserData = scope
+    this.delUserData = row
 
     // 获取图标元素, 防止 pop 错位
     const target = (e.target as Element).children[0] || e.target
@@ -335,11 +343,10 @@ export default class Users extends Vue {
   }
   // 删除用户
   private async onDelUser() {
-    const { row, $index } = this.delUserData
-    const res = await this.$api.delUser(row.id)
+    const res = await this.$api.delUser(this.delUserData.id)
     if (res && res.status === 200) {
+      await this.getUserList()
       this.$message.success('删除成功')
-      this.tableData.splice($index, 1)
       this.delUserVisible = false
     }
   }
@@ -354,14 +361,14 @@ export default class Users extends Vue {
       }
       let res = await this.$api.addUser(this.addUserData)
       if (res && res.status === 200) {
-        this.tableData.push(res.data.data)
+        await this.getUserList()
         this.$message.success('添加成功')
         this.addUserVisible = false
       }
     })
   }
   // 添加用户表单验证
-  addUserDataRules = {
+  private addUserDataRules = {
     username: [
       { required: true, message: '用户名不能为空', trigger: 'blur' },
       { min: 6,  message: '用户名至少6位', trigger: 'blur' },
@@ -387,7 +394,7 @@ export default class Users extends Vue {
     else cb()
   }
   // 添加用户打开事件
-  addUserOnOpen() {
+  private addUserOnOpen() {
     // 添加用户会改变表格, 等 dom 更新后再重置, 防止bug
     this.$nextTick(() => {
       // 重置表
@@ -448,7 +455,7 @@ export default class Users extends Vue {
     return isAvatar && isLt10M;
   }
   // 头像上传成功的回调
-  private handleAvatarSuccess(res: any, file: any) {
+  private handleAvatarSuccess(res: any) {
     this.editUserData.avatar = res.data.avatarRelPath
   }
   // 头像上传失败的回调
@@ -459,14 +466,14 @@ export default class Users extends Vue {
 
   // 搜索栏
   private async onQuery() {
-    const searchData = Object.assign({}, this.queryInfo)
-    searchData.offset = 1
-    const res = await this.$api.getUsers(searchData)
-    if (res && res.status === 200) {
-      console.log(res.data.data);
-      // this.tableData = res.data.data
-    }
+    this.queryInfo.offset = 1 // 重置页码
+    await this.getUserList()
   }
+  // 清空搜索栏的回调
+  private async clearCb() {
+    await this.getUserList()
+  }
+  // 导出 excel
   private async exportUsers() {
     /*
      * 后端导出文件给前端下载:
@@ -507,10 +514,7 @@ export default class Users extends Vue {
     const out = xlsx.write(wb, opts as any);
     saveAs(new Blob([out],{type:"application/octet-stream"}), "users.xlsx");
   }
-  private changeCb(cur: any) {
-
-  }
-  // 导入用户之前的回调
+  // 导入 excel 之前的回调
   private beforeExcelUpload(file: any) {
     const isExcel = file.type.includes('excel') || file.type.includes('spreadsheetml')
     const isLt10M = file.size / 1024 / 1024 < 10;
@@ -523,12 +527,12 @@ export default class Users extends Vue {
     }
     return isExcel && isLt10M;
   }
-  // 导入用户成功的回调
-  private handleExcelSuccess(res: any) {
-
+  // 导入 excel 成功的回调
+  private handleExcelSuccess() {
+    this.getUserList()
     this.$message.success('导入成功')
   }
-  // 导入失败的回调
+  // 导入 excel 失败的回调
   private handleExcelError(err: any) {
     const res = JSON.parse(err.message).data
     if (!res) return this.$message.error('导入失败: 导入用户存在重复!')
@@ -537,19 +541,19 @@ export default class Users extends Vue {
   }
 
   // 分页: 显示条数发生改变时
-  private handleSizeChange(size: string) {
-    console.log(size);
+  private handleSizeChange() {
+    this.getUserList()
   }
   // 分页: 当前页面发生改变时
-  private handleCurrentChange(curPage: string) {
-    console.log(curPage);
+  private handleCurrentChange() {
+    this.getUserList()
   }
 
   /*watch
     ====================================== */
   // 观察编辑数据是否改变
   @Watch('editUserData', { deep: true })
-  editSubmit(nv: any, ov: any) {
+  editSubmit(nv: any) {
     if (nv) this.isEditChange = true
   }
 
@@ -558,7 +562,7 @@ export default class Users extends Vue {
   async created() {
     await this.getUserList()
     // 点击 dom 关闭 pop
-    document.addEventListener('click', e => {
+    document.addEventListener('click', () => {
       this.delUserVisible = false
     })
   }

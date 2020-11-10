@@ -11,8 +11,8 @@ export default class UserController extends Controller {
     const { ctx } = this;
     const userInfo = ctx.query;
     try {
-      const users = await ctx.service.user.retrieve(userInfo);
-      ctx.sendResult(users, 200, '获取成功');
+      const res = await ctx.service.user.searchQuery(userInfo);
+      ctx.sendResult(res, 200, '获取成功');
     } catch (e) {
       ctx.logger.error(e);
       ctx.sendResult(null, 400, '获取失败: 内部错误');
