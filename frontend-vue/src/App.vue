@@ -14,39 +14,49 @@ export default {
 </script>
 
 <style lang="scss">
-/* 全局样式  */
-html, body, #app{
+#app{
   width: 100%;
   height: 100%;
-}
 
-// 将 html 的滚动条变为容器内部的, 防止压缩页面
-#app{
-  // 同时解决弹窗抖动问题
+  // 将 html 的滚动条变为容器内部的, 防止压缩页面
+  // 同时解决弹窗(dialog...)抖动问题
   position: relative;
   overflow-y: auto;
-}
 
-p, h1, h2, h3{
-  margin: 0
-}
+  /*app 中通用的 element 样式
+    ====================================== */
+  // 卡片区域
+  .el-card{
+    margin-bottom: 20px;
+    // 搜索栏
+    .search-bar{
+      margin-bottom: 20px;
+      .bar-left{
+        min-width: 700px;
+      }
+      .bar-right{
+        min-width: 200px ;
+        text-align: right;
 
-ul, ol{
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
+        .excel-uploader{
+          display: inline-block;
+          margin-left: 10px;
+        }
+      }
+    }
 
-image{
-  vertical-align: bottom;
-}
+    // 表格
+    .el-table{
+      // 表格宽度
+      .user-handle>.cell{
+        min-width: 180px;
+      }
+    }
+  }
 
-div{
-  box-sizing: border-box;
-}
-
-a{
-  color: #248397;
-  text-decoration: none;
+  // 删除提示 pop
+  .el-popover{
+    box-shadow: 0 0 3px #bbb !important;
+  }
 }
 </style>

@@ -3,13 +3,13 @@
     <!-- header -->
     <el-header>
       <div class="header-logo" @click="goHome">
-        <img src="../assets/A_logo.png" alt="">
+        <img src="../assets/img/A_logo.png" alt="">
         <span>后台管理系统</span>
       </div>
       <div class="header-handle">
-        <img src="../assets/王道.png" alt="加载失败">
+        <img src="../assets/img/王道.png" alt="加载失败">
         <span>你的名字</span>
-        <el-button type="info" @click="logout">退出</el-button>
+        <el-button size="small" type="info" @click="logout">退出</el-button>
       </div>
     </el-header>
     <!-- container -->
@@ -22,19 +22,21 @@
             class="aside-menu"
             unique-opened
             router
-            :default-active="elMenu.activePath"
-            :collapse-transition="elMenu.isAni"
-            :collapse="elMenu.isFold"
-            :background-color="elMenu.bgc"
-            :text-color="elMenu.tc"
-            :active-text-color="elMenu.atc"
+            :default-active="elMenuOpts.activePath"
+            :collapse-transition="elMenuOpts.isAni"
+            :collapse="elMenuOpts.isFold"
+            :background-color="elMenuOpts.bgc"
+            :text-color="elMenuOpts.tc"
+            :active-text-color="elMenuOpts.atc"
             >
+          <!-- 折叠按钮 -->
           <div class="trigger-button" @click="triggerCollapse">
-            <i :class="elMenu.isFold ? menuIcon.fold : menuIcon.unfold"/>
+            <i :class="elMenuOpts.isFold ? menuIcon.fold : menuIcon.unfold"/>
           </div>
           <!-- 一级菜单 -->
-          <el-submenu :index="item.id" v-for="item in
-userMenus" :key="item.id">
+          <el-submenu :index="item.id"
+                      v-for="item in userMenus"
+                      :key="item.id">
             <!-- 菜单模板 -->
             <template slot="title">
               <!-- 菜单图标 -->
@@ -43,9 +45,8 @@ userMenus" :key="item.id">
               <span>{{item.menuName}}</span>
             </template>
             <!-- 二级菜单 -->
-            <el-menu-item
-                :index="child1.path"
-                v-for="child1 in item.children">
+            <el-menu-item :index="child1.path"
+                          v-for="child1 in item.children">
               <!-- 菜单图标 -->
               <i :class="menuIcon.sub"></i>
               <!-- 菜单文本 -->
@@ -56,7 +57,7 @@ userMenus" :key="item.id">
       </el-aside>
       <!-- main -->
       <el-main>
-        <router-view/>
+        <router-view :navi-path="naviPath"/>
       </el-main>
     </el-container>
   </el-container>
@@ -80,7 +81,7 @@ export default class Admin extends Vue {
   @Ref() readonly menuRef!: Menu
 
 
-  /*data
+  /*data & computed
     ====================================== */
   // 用户菜单列表
   userMenus = [
@@ -88,17 +89,19 @@ export default class Admin extends Vue {
       id: '1',
       menuName:'用户管理',
       path: '',
+      pid: '0',
       children:[
-        {id: '2',menuName:'用户列表',path: '/users'}
+        {id: '2',menuName:'用户列表',path: '/users', pid: '1'}
       ]
     },
     {
       id: '3',
       menuName:'权限管理',
       path: '',
+      pid: '0',
       children:[
-        {id: '4',menuName:'角色列表',path: '/roles'},
-        {id: '5',menuName:'权限列表',path: '/rights'}
+        {id: '4',menuName:'角色列表',path: '/roles',pid: '3'},
+        {id: '5',menuName:'权限列表',path: '/rights', pid: '3'}
       ]
     },
   ]
@@ -115,13 +118,28 @@ export default class Admin extends Vue {
     6: '',
   }
   // el-menu 配置
-  elMenu = {
+  elMenuOpts = {
     isFold: false, // 是否折叠
     isAni: true, // 是否开启折叠动画
     activePath: this.$route.path, // 默认选中菜单
     bgc: '#333444', // 背景色
     tc: '#fff', // 文本色
     atc: '#ffd04b', // 选中色
+  }
+  // 获取面包屑导航路径
+  private get naviPath() {
+    let temp: any[] = [{
+      id: 0,
+      menuName: '首页',
+      path: '/welcome',
+    }]
+    const path = this.$route.path
+    let subMenu: any = ''
+    const parentMenu = this.userMenus.find(menu => {
+      return subMenu = menu.children.find(item => item.path === path)
+    })
+    subMenu && parentMenu && temp.push(parentMenu, subMenu)
+    return temp
   }
 
   /*method
@@ -131,18 +149,17 @@ export default class Admin extends Vue {
     if (this.$route.path === '/welcome') return // 防止重复路由跳转
     this.menuRef.close('1') // 收起父菜单
     this.$router.push('/welcome')
-    this.elMenu.activePath = ''
+    this.elMenuOpts.activePath = ''
   }
   // 退出
   private logout() {
     localStorage.removeItem('rft')
     this.$router.push('/login')
   }
-  // 左侧菜单水平切换
+  // 左侧菜单水平折叠
   private triggerCollapse() {
-    this.elMenu.isFold = !this.elMenu.isFold
+    this.elMenuOpts.isFold = !this.elMenuOpts.isFold
   }
-
 
   /*LC(life-cycle)
     ====================================== */
@@ -164,8 +181,7 @@ export default class Admin extends Vue {
 </script>
 
 <style scoped lang="scss">
-// element
-.admin-container {
+::v-deep.admin-container {
   min-width: 1100px;
   height: 100%;
   // header

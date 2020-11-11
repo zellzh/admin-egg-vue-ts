@@ -1,11 +1,7 @@
 <template>
   <div class="users-container">
-    <!-- 面包屑区域 -->
-    <el-breadcrumb separator-class="el-icon-arrow-right">
-      <el-breadcrumb-item :to="{ path: '/admin' }">首页</el-breadcrumb-item>
-      <el-breadcrumb-item>用户管理</el-breadcrumb-item>
-      <el-breadcrumb-item>用户列表</el-breadcrumb-item>
-    </el-breadcrumb>
+    <!-- 面包屑 -->
+    <Breadcrumb :navi-path="naviPath"/>
     <!-- 卡片区域 -->
     <el-card shadow="always">
       <!-- 搜索区域 -->
@@ -157,7 +153,7 @@
               :on-success="handleAvatarSuccess"
               :on-error="handleAvatarError"
               :before-upload="beforeAvatarUpload">
-            <img v-if="avatarUrl" :src="avatarUrl" class="avatar" alt="">
+            <img class="img-fluid" v-if="avatarUrl" :src="avatarUrl" alt="">
             <i v-else class="el-icon-plus avatar-uploader-icon"></i>
           </el-upload>
         </el-form-item>
@@ -200,10 +196,11 @@
 </template>
 
 <script lang="ts">
-import {Component, Ref, Vue, Watch} from 'vue-property-decorator';
-import userReg from "@/assets/userReg";
+import {Component, Ref, Vue, Prop, Watch} from 'vue-property-decorator';
+import Breadcrumb from "@/components/common/Breadcrumb.vue";
+import userReg from "@/assets/regexp/userReg";
 import {Form, Input, Popover} from "element-ui";
-import {admin, baseUrl} from "@/api/url";
+import {users, baseUrl} from "@/api/url/index";
 // import fileDownload from 'js-file-download'
 import xlsx from 'xlsx';
 import {saveAs} from 'file-saver';
@@ -223,16 +220,17 @@ interface Pop extends Popover{
 @Component({
   name: 'Users',
   components: {
-
+    Breadcrumb
   },
 })
 export default class Users extends Vue {
-  /*ref
+  /*ref & prop
     ====================================== */
   @Ref() readonly addUserForm?: Form; // 刚进入页面表单未加载
   @Ref() readonly editUserForm?: Form;
   @Ref() readonly pwdInput?: Input & { [prop: string]: any};
   @Ref() readonly delPop!: Pop;
+  @Prop() readonly naviPath!: any[]
 
   /*data
     ====================================== */
@@ -272,7 +270,7 @@ export default class Users extends Vue {
   // 数据总量
   totalCount = 0
   // 导入用户URL
-  excelPostUrl = baseUrl + admin.excel
+  excelPostUrl = baseUrl + users.excel
 
   // 添加用户的表单数据
   addUserVisible = false
@@ -288,7 +286,7 @@ export default class Users extends Vue {
   editUserData: any = {}
   isEditChange = false
   // 头像上传URL
-  avatarPostUrl = baseUrl + admin.avatar
+  avatarPostUrl = baseUrl + users.avatar
 
   // 删除用户
   delUserVisible = false
@@ -560,6 +558,7 @@ export default class Users extends Vue {
   /*LC(life-cycle)
     ====================================== */
   async created() {
+    console.log(this.naviPath);
     await this.getUserList()
     // 点击 dom 关闭 pop
     document.addEventListener('click', () => {
@@ -573,48 +572,6 @@ export default class Users extends Vue {
 ::v-deep.users-container{
   // pop 绝对定位, 父容器相对定位
   position: relative;
-
-  // 面包屑
-  .el-breadcrumb{
-    i{
-      color: #333444;
-    }
-  }
-
-  // 卡片区域
-  .el-card{
-    margin-top: 20px;
-    // 搜索栏
-    .search-bar{
-      .bar-left{
-        min-width: 700px;
-      }
-      .bar-right{
-        min-width: 200px ;
-        text-align: right;
-
-        .excel-uploader{
-          display: inline-block;
-          margin-left: 10px;
-        }
-      }
-    }
-
-    // 表格
-    .el-table{
-      margin-top: 20px;
-      // 表格宽度
-      .user-handle>.cell{
-        min-width: 180px;
-      }
-    }
-  }
-
-  // 分页
-  .el-pagination{
-    margin-top: 20px;
-  }
-
   // 上传头像
   .avatar-uploader{
     text-align: center;
@@ -638,17 +595,6 @@ export default class Users extends Vue {
       line-height: 100%;
       text-align: center;
     }
-    .avatar {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      display: block;
-    }
-  }
-
-  // 删除 pop
-  .el-popover{
-    box-shadow: 0 0 3px #bbb !important;
   }
 }
 </style>

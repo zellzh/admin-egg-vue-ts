@@ -28,7 +28,7 @@
         <el-image slot="append"
                   style="cursor:pointer;"
                   @click="updateCode"
-                  :src="api.imgCode" :fit="'contain'"/>
+                  :src="imgCode" :fit="'contain'"/>
       </el-input>
     </el-form-item>
     <!-- 用户协议 -->
@@ -50,9 +50,9 @@
 
 <script lang="ts">
 import { Component, Vue, Ref } from 'vue-property-decorator';
-import userReg from "../../assets/userReg"
+import userReg from "../../assets/regexp/userReg"
 import {Form} from "element-ui";
-import url from '@/api/url'
+import { baseUrl, account } from '@/api/url/index'
 
 @Component({
   name: 'NormalForm',
@@ -68,10 +68,9 @@ export default class NormalForm extends Vue {
 
   /*data
     ====================================== */
-  baseURL = process.env.VUE_APP_BASE_API
-  api = {
-    imgCode: '',
-  }
+  // 验证码 url
+  imgCode = baseUrl + account.imgCode
+  // 用户数据
   userInfo = {
     username: '',
     password: '',
@@ -126,7 +125,7 @@ export default class NormalForm extends Vue {
   }
   // 更新验证码: 防止缓存
   private updateCode() {
-    this.api.imgCode = `${this.baseURL}${url.imgCode}?t=${Date.now()}`
+    this.imgCode = `${baseUrl + account.imgCode}?t=${Date.now()}`
   }
   // 提交注册
   private onSubmit() {

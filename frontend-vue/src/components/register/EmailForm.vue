@@ -52,7 +52,7 @@
 
 <script lang="ts">
 import { Component, Vue, Ref } from 'vue-property-decorator';
-import userReg from "../../assets/userReg"
+import userReg from "../../assets/regexp/userReg"
 import {Form} from "element-ui";
 
 @Component({

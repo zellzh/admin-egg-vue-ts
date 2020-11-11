@@ -63,8 +63,8 @@
 
 <script lang="ts">
 import {Component, Vue, Ref} from 'vue-property-decorator';
-import url from "@/api/url";
-import userReg from "../assets/userReg";
+import { baseUrl, account } from "@/api/url/index";
+import userReg from "../assets/regexp/userReg";
 import {Form} from 'element-ui'
 
 @Component({
@@ -79,11 +79,12 @@ export default class Login extends Vue {
 
   /*data
     ====================================== */
-  baseURL = process.env.VUE_APP_BASE_API
+  // 后端接口
   api = {
     imgCode: '',
-    oauthGithub: this.baseURL + url.github
+    oauthGithub: baseUrl + account.github
   }
+  // 用户数据
   userInfo = {
     username: '',
     email: '',
@@ -107,7 +108,7 @@ export default class Login extends Vue {
 
   // 更新验证码
   updateCode() {
-    this.api.imgCode = `${this.baseURL}${url.imgCode}?t=${Date.now()}`
+    this.api.imgCode = `${baseUrl + account.imgCode}?t=${Date.now()}`
   }
 
   // 区分用户类型
@@ -146,7 +147,7 @@ export default class Login extends Vue {
     // 监听打开窗口的数据
     addEventListener('message', async ev => {
       // 是后台 api 传来的数据时, 保存 token
-      if (ev.origin + '/' === this.baseURL) {
+      if (ev.origin + '/' === baseUrl) {
         const { access_token, refresh_token } = ev.data
         localStorage.setItem('act', access_token)
         localStorage.setItem('rft', refresh_token)
@@ -301,7 +302,7 @@ export default class Login extends Vue {
     height: 100px;
     padding: 10px;
     border-radius: 50%;
-    background: #fff url("../assets/vue-logo.png") no-repeat center;
+    background: #fff url("../assets/img/vue-logo.png") no-repeat center;
     background-size: cover;
     box-shadow: 0 0 10px #ccc;
     position: absolute;

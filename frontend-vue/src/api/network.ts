@@ -1,10 +1,9 @@
 // axios 请求数据
 import axios, {AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse} from 'axios'
-import {refreshTokenApi, baseUrl} from '@/api/url'
+import {baseUrl, refreshTokenApi} from './url'
 import Vue from "vue";
 
 const vue = Vue.prototype
-
 axios.defaults.baseURL = baseUrl
 axios.defaults.timeout = 10000
 axios.defaults.withCredentials = true // 开启携带 cookie
@@ -71,7 +70,7 @@ axios.interceptors.response.use(
 async function updateToken(response: AxiosResponse) {
   console.log('更新 token');
   // 请求 refresh 接口, 更新本地 token
-  const refreshRes = await get(refreshTokenApi)
+  const refreshRes = await GET(refreshTokenApi)
   if (!refreshRes) return
   localStorage.setItem('act', refreshRes.data.access_token)
 
@@ -82,8 +81,16 @@ async function updateToken(response: AxiosResponse) {
   return await axios.request(config)
 }
 
+// 错误处理
+function errHandle(e: AxiosError) {
+  const errData = e.response?.data
+  errData && errData.meta ?
+    vue.$message.error(errData.meta.msg) :
+    vue.$message.error(errData.message)
+}
+
 // 封装的 get 请求
-async function get (url: string, params?: any, opts?: AxiosRequestConfig): Promise<any> {
+async function GET (url: string, params?: any, opts?: AxiosRequestConfig): Promise<any> {
   try {
     return await axios.get(url, {params: params, ...opts})
   } catch (e) {
@@ -92,7 +99,7 @@ async function get (url: string, params?: any, opts?: AxiosRequestConfig): Promi
 }
 
 // 封装的 post 请求
-async function post (url: string, params?: any, opts?: AxiosRequestConfig): Promise<any> {
+async function POST (url: string, params?: any, opts?: AxiosRequestConfig): Promise<any> {
   try {
     return await axios.post(url, params, opts)
   } catch (e) {
@@ -101,7 +108,7 @@ async function post (url: string, params?: any, opts?: AxiosRequestConfig): Prom
 }
 
 // 封装的 delete 请求
-async function del (url: string, opts?: AxiosRequestConfig): Promise<any> {
+async function DEL (url: string, opts?: AxiosRequestConfig): Promise<any> {
   try {
     return await axios.delete(url, opts)
   } catch (e) {
@@ -110,7 +117,7 @@ async function del (url: string, opts?: AxiosRequestConfig): Promise<any> {
 }
 
 // 封装的 put 请求
-async function put (url: string, params?: any, opts?: AxiosRequestConfig): Promise<any> {
+async function PUT (url: string, params?: any, opts?: AxiosRequestConfig): Promise<any> {
   try {
     return await axios.put(url, params, opts)
   } catch (e) {
@@ -119,7 +126,7 @@ async function put (url: string, params?: any, opts?: AxiosRequestConfig): Promi
 }
 
 // 封装的 all 请求
-async function all (requests: AxiosInstance[]) {
+async function ALL (requests: AxiosInstance[]) {
   try {
     return await axios.all(requests)
   } catch (e) {
@@ -127,19 +134,10 @@ async function all (requests: AxiosInstance[]) {
   }
 }
 
-// 错误处理
-function errHandle(e: AxiosError) {
-  console.log(e);
-  const errData = e.response?.data
-  errData && errData.meta ?
-    vue.$message.error(errData.meta.msg) :
-    vue.$message.error(errData.message)
-}
-
 export default {
-  get,
-  post,
-  delete: del,
-  put,
-  all,
+  get: GET,
+  post: POST,
+  put: PUT,
+  delete: DEL,
+  all: ALL
 }
