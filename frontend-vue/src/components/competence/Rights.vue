@@ -13,10 +13,10 @@
                          clearable
                          v-model="queryInfo.type"
                          placeholder="-权限类型-">
-                <el-option v-for="opt in rightsOpts"
-                           :key="opt.label"
-                           :label="opt.label"
-                           :value="opt.val"/>
+                <el-option v-for="(val, key) in rightsOpts"
+                           :key="key"
+                           :label="val"
+                           :value="key"/>
               </el-select>
             </el-col>
             <el-col :span="8">
@@ -32,7 +32,7 @@
           </el-row>
         </el-col>
         <el-col class="bar-right" :span="8">
-          <el-button type="primary" size="small" @click="rightsVisible = true">添加权限</el-button>
+          <el-button type="primary" size="small" @click="setAddRights">添加权限</el-button>
         </el-col>
       </el-row>
       <!-- 表格区域 -->
@@ -69,7 +69,7 @@
                        icon="el-icon-edit"/>
             <el-button size="mini"
                        type="danger"
-                       @click.stop="showPop(scope.row,$event)"
+                       @click.stop="showPop(scope.row.id,$event)"
                        icon="el-icon-delete"/>
           </template>
         </el-table-column>
@@ -98,7 +98,7 @@
         <el-form-item label="权限名称" prop="rights_name">
           <el-input v-model="rightsData.rights_name"
                     ref="focus"
-                    autofocus
+                    :disabled="isEditRights"
                     clearable
                     prefix-icon="iconfont icon-option"
                     placeholder="请输入权限名"/>
@@ -169,7 +169,19 @@
 <script lang="ts">
 import {Component, Vue, Prop, Ref} from 'vue-property-decorator';
 import Breadcrumb from "@/components/common/Breadcrumb.vue";
-import {Form} from "element-ui";
+import {Form, Popover} from "element-ui";
+
+// popperJS 扩展 Popover, 方便自定义
+interface Pop extends Popover{
+  updatePopper: () => void // 刷新/创建 pop
+  referenceElm: Element // 指定绑定的元素
+  popperJS?: {
+    _reference: Element // 绑定元素
+    state: any
+    [prop: string]: any
+  }
+  [prop: string]: any
+}
 
 @Component({
   name: 'Rights',
@@ -181,6 +193,7 @@ export default class Rights extends Vue {
   /*ref & prop
     ====================================== */
   @Ref() readonly addRightsForm?: Form
+  @Ref() readonly delPop!: Pop
   @Prop() readonly naviPath!: any[]
 
   /*data & computed
@@ -207,11 +220,9 @@ export default class Rights extends Vue {
     all: 'ALL请求',
   }
 
-  // 权限框显示
+  // 添加 | 编辑权限
   rightsVisible = false
-  // 编辑权限 | 添加权限切换
   isEditRights = false
-  // 添加 | 编辑权限表单数据
   rightsData: any = {
     rights_name: '',
     rights_type: '',
@@ -223,8 +234,12 @@ export default class Rights extends Vue {
   }
   // 当前权限的父级
   curRightsParents: any[] = []
-  // 删除权限 Pop 显示
+  // 当前表单数据
+  curRightsData: any = {}
+
+  // 删除权限
   delRightsVisible = false
+  delRID = 0
 
   // 表头
   tableField = {
@@ -244,35 +259,41 @@ export default class Rights extends Vue {
    ====================================== */
   // 获取权限列表
   private async getRightsList() {
-    const res = await this.$api.getRights()
+    const res = await this.$api.getRights(this.queryInfo)
     if (res && res.status === 200) {
       const data = res.data.data
-      this.tableData = data;
-      // this.totalCount = data.count;
+      this.tableData = data.rights;
+      this.totalCount = data.count;
     }
   }
 
   // 搜索栏查询
   private async onQuery() {
-
+    this.queryInfo.offset = 1 // 重置页码
+    await this.getRightsList()
   }
   // 清空搜索的回调
   private async clearCb() {
-
+    await this.getRightsList()
   }
 
-  // 权限打开回调
-  private async openEdit() {
-
-  }
-  // 权限状态切换
-  private async switchState() {
-
+  // 点击添加权限
+  private setAddRights() {
+    this.rightsVisible = true
+    this.isEditRights = false
   }
   // 权限表单打开的回调
   private async addRightsOnOpen() {
     this.rightsData.level = null
     this.addRightsForm?.resetFields()
+    if (this.isEditRights) {
+      // 获取父级
+      const level = this.curRightsData.level
+      level && await this.setCurParents(level)
+      // 复用表单并填充数据
+      this.rightsData = Object.assign(this.rightsData, this.curRightsData)
+
+    }
   }
   // 权限类型切换的回调
   private async typeChangeCb(type: string) {
@@ -293,6 +314,10 @@ export default class Rights extends Vue {
         this.rightsData.level = level = 2;
         break;
     }
+    await this.setCurParents(level)
+  }
+  // 查询父级
+  private async setCurParents(level: number) {
     level -= 1
     if (level < 0) return
     const res = await this.$api.getParentRights(level)
@@ -300,6 +325,7 @@ export default class Rights extends Vue {
       this.curRightsParents = res.data.data
     }
   }
+
   // 添加 | 编辑权限提交处理
   private onRightsHandle() {
     this.addRightsForm!.validate(async valid => {
@@ -309,7 +335,7 @@ export default class Rights extends Vue {
       }
       const res = await this.$api.addRights(this.rightsData)
       if (res && res.status === 200) {
-        this.$message.success('添加成功')
+        this.$message.success(this.isEditRights ? '更新成功' : '添加成功')
         await this.getRightsList()
         this.rightsVisible = false
       }
@@ -318,10 +344,10 @@ export default class Rights extends Vue {
   // 表单验证
   private rightsRules = {
     rights_name: [
-      {required: true, message: '权限名称不能为空', trigger: 'blur', transform(value: string){return value.trim()}},
+      {required: true, message: '权限名称不能为空', trigger: 'blur', transform(value: string){return value && value.trim()}},
     ],
     rights_desc: [
-      {transform(value: string) {return value.trim()}}
+      {transform(value: string) {return value && value.trim()}}
     ],
     rights_path: [
       {validator: this.verifyPath, trigger: 'blur'}
@@ -338,7 +364,7 @@ export default class Rights extends Vue {
   }
   // 路径验证
   private verifyPath(rule: any, value:string, cb:any) {
-    if (this.rightsData.level && !value.trim()) {
+    if (this.rightsData.level && value && !value.trim()) {
       cb('路由或请求权限必须填写路径')
     } else {
       cb()
@@ -346,7 +372,7 @@ export default class Rights extends Vue {
   }
   // 请求方式验证
   private verifyMethod(rule: any, value:string, cb:any) {
-    if (this.rightsData.rights_type === 'action' && !value){
+    if (this.rightsData.rights_type === 'action' && value && !value){
       cb('请求权限必须选择请求方式')
     } else {
       cb()
@@ -361,23 +387,57 @@ export default class Rights extends Vue {
     }
   }
 
-  // 删除权限显示提示 Pop
-  private async showPop() {
-
+  // 编辑权限
+  private async openEdit(row: any) {
+    // 显示
+    this.rightsVisible = true
+    this.isEditRights = true
+    this.curRightsData = row
   }
-  // 删除权限提交
+  // 权限状态切换
+  private async switchState(row: any) {
+    const { id, ...rights } = row
+    const res = await this.$api.updateRights(id, rights)
+    if (res && res.status === 200) {
+      this.$message.success('更新状态成功')
+    }
+  }
+
+  // 显示删除 pop
+  private showPop(id: number, e: MouseEvent) {
+    // pop
+    this.delRID = id
+
+    // 获取图标元素, 防止 pop 错位
+    const target = (e.target as Element).children[0] || e.target
+    const pop = this.delPop
+    // 更新 pop, 并绑定当前的元素
+    pop.updatePopper()
+    pop.referenceElm = target;
+    this.delRightsVisible = true
+    // 触发 dom 更新, 获取当前的 popperJS, 并绑定到当前元素
+    this.$nextTick(() => {
+      pop.popperJS!._reference = target
+      pop.popperJS!.state.updateBound()
+    });
+  }
+  // 删除用户
   private async onDelRights() {
-
+    const res = await this.$api.delRights(this.delRID)
+    if (res && res.status === 200) {
+      await this.getRightsList()
+      this.$message.success('删除成功')
+    }
+    this.delRightsVisible = false
   }
-
 
   // 分页条数回调
   private async handleSizeChange() {
-
+    await this.getRightsList()
   }
   // 分页页码回调
   private async handleCurrentChange() {
-
+    await this.getRightsList()
   }
 
   /*watcher
@@ -395,6 +455,7 @@ export default class Rights extends Vue {
 
 <style scoped lang="scss">
 ::v-deep.rights-container{
-
+  // 相对定位, 控制 Pop
+  position: relative;
 }
 </style>

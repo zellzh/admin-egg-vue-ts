@@ -351,8 +351,8 @@ export default class Users extends Vue {
     if (res && res.status === 200) {
       await this.getUserList()
       this.$message.success('删除成功')
-      this.delUserVisible = false
     }
+    this.delUserVisible = false
   }
 
   // 添加用户
@@ -545,12 +545,12 @@ export default class Users extends Vue {
   }
 
   // 分页: 显示条数发生改变时
-  private handleSizeChange() {
-    this.getUserList()
+  private async handleSizeChange() {
+    await this.getUserList()
   }
   // 分页: 当前页面发生改变时
-  private handleCurrentChange() {
-    this.getUserList()
+  private async handleCurrentChange() {
+    await this.getUserList()
   }
 
   /*watch

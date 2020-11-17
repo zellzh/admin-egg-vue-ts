@@ -44,8 +44,9 @@ export default class UserController extends Controller {
     const { ctx } = this;
     const { id } = ctx.params;
     try {
-      await ctx.service.user.delete(parseInt(id));
-      ctx.sendResult(null, 200, '删除成功');
+      const res = await ctx.service.user.delete(parseInt(id));
+      if (res.affected) return ctx.sendResult(null, 200, '删除成功');
+      ctx.sendResult(null, 400, '删除失败: 请检查参数!');
     } catch (e) {
       ctx.logger.error(e);
       ctx.sendResult(null, 500, '删除失败: 内部错误!');

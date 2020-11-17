@@ -19,7 +19,7 @@ export const rightsAction = {
   },
   getParentRights: (level: number) => actions.get(url.parentRights + `/${level}`),
   addRights: (data: object) => actions.post(url.rights, data),
-  delRights: (id: string) => actions.delete(url.rights + `/${id}`),
+  delRights: (id: number) => actions.delete(url.rights + `/${id}`),
   updateRights: (id: string, data: object) => actions.put(url.rights + `/${id}`, data),
 }
 

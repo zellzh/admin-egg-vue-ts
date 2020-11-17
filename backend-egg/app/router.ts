@@ -20,4 +20,6 @@ export default (app: Application) => {
   router.get('/api/v1/rights/:view', controller.rights.getRights);
   router.get('/api/v1/rights/parents/:level', controller.rights.getParents);
   router.post('/api/v1/rights', controller.rights.addRights);
+  router.delete('/api/v1/rights/:id', controller.rights.delRights);
+  router.put('/api/v1/rights/:id', controller.rights.updateRights);
 };

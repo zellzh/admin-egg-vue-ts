@@ -59,4 +59,34 @@ export default class RightsController extends Controller {
       ctx.sendResult(null, 500, '添加失败: 内部错误!');
     }
   }
+
+  // 删除
+  public async delRights() {
+    const { ctx } = this;
+    const { id } = ctx.params;
+    try {
+      const res = await ctx.service.rights.delete(parseInt(id));
+      if (res.affected) return ctx.sendResult(null, 200, '删除权限成功');
+      ctx.sendResult(null, 400, '删除失败: 请检查参数!');
+    } catch (e) {
+      ctx.logger.error(e);
+      ctx.sendResult(null, 500, '删除失败: 内部错误!');
+    }
+  }
+
+  // 更新
+  public async updateRights() {
+    const { ctx } = this;
+    const { id } = ctx.params;
+    const rights = ctx.request.body;
+    try {
+      const updateInfo = await ctx.service.rights.update(parseInt(id), rights);
+      updateInfo ?
+        ctx.sendResult(null, 400, updateInfo) :
+        ctx.sendResult(null, 200, '更新成功');
+    } catch (e) {
+      ctx.logger.error(e);
+      ctx.sendResult(null, 500, '更新失败: 内部错误!');
+    }
+  }
 }
