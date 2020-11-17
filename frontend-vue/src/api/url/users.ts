@@ -2,9 +2,9 @@ import actions from "@/api/network";
 
 // users 接口
 const url = {
-  users: 'api/v1/users',
-  avatar: 'api/v1/users/avatars',
-  excel: 'api/v1/users/excels',
+  users: '/api/v1/users',
+  avatar: '/api/v1/users/avatars',
+  excel: '/api/v1/users/excels',
 }
 
 // users 请求方法

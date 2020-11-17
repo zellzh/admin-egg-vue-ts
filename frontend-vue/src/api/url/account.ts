@@ -5,13 +5,13 @@ export const refreshTokenApi = 'refresh_token';
 
 // register/login 接口
 const url = {
-  imgCode: "imgCode",
-  emailCode: "emailCode",
-  smsCode: "smsCode",
-  isExist: 'isExist', // 查询用户
-  isLogin: 'isLogin', // 用户是否登录
-  register: "register",
-  login: 'login',
+  imgCode: "/imgCode",
+  emailCode: "/emailCode",
+  smsCode: "/smsCode",
+  isExist: '/isExist', // 查询用户
+  isLogin: '/isLogin', // 用户是否登录
+  register: "/register",
+  login: '/login',
   // 第三方
   github: '/passport/github',
 }

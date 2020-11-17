@@ -17,4 +17,7 @@ export default (app: Application) => {
   /* admin: RESTful API
     =========================================== */
   adminUsers(app);
+  router.get('/api/v1/rights/:view', controller.rights.getRights);
+  router.get('/api/v1/rights/parents/:level', controller.rights.getParents);
+  router.post('/api/v1/rights', controller.rights.addRights);
 };

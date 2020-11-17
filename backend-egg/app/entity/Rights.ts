@@ -25,7 +25,7 @@ enum Level {
 @Entity()
 export default class Rights {
   // toJSON 方法
-  toJSON?() {
+  toJSON() {
     const hideKey = [ 'createdAt', 'updatedAt' ];
     for (const key in this) {
       if (this.hasOwnProperty(key)) {
@@ -38,7 +38,7 @@ export default class Rights {
   // 级联
   // 中间表关联
   @OneToMany(() => RolesRights, rel => rel.rights)
-  rightsRoles?: RolesRights[];
+  rightsRoles: RolesRights[];
 
   // ManyToMany 关联
   // @ManyToMany(() => Role, role => role.rights) // 反向关联 Role
@@ -56,31 +56,31 @@ export default class Rights {
     comment: '权限类型',
     nullable: true,
   })
-  rights_type?: string;
+  rights_type: string;
 
   @Column({
     comment: '权限描述',
     nullable: true,
   })
-  rights_desc?: string;
+  rights_desc: string;
 
   @Column({
     comment: '权限是否可用',
     default: true,
   })
-  rights_state?: boolean;
+  rights_state: boolean;
 
   @Column({
     comment: '路由/请求地址',
     nullable: true,
   })
-  rights_path?: string;
+  rights_path: string;
 
   @Column({
     comment: '请求方法',
     nullable: true,
   })
-  rights_method?: string;
+  rights_method: string;
 
   @Column({
     comment: '父级权限',
@@ -98,8 +98,8 @@ export default class Rights {
   level: Level; // 枚举类型
 
   @CreateDateColumn({ comment: '添加时间' })
-  createdAt?: Date;
+  createdAt: Date;
 
   @UpdateDateColumn({ comment: '更新时间' })
-  updatedAt?: Date;
+  updatedAt: Date;
 }

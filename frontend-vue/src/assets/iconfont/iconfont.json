@@ -6,6 +6,13 @@
   "description": "后台管理",
   "glyphs": [
     {
+      "icon_id": "13429323",
+      "name": "md-options",
+      "font_class": "option",
+      "unicode": "e941",
+      "unicode_decimal": 59713
+    },
+    {
       "icon_id": "26701",
       "name": "qq",
       "font_class": "qq",

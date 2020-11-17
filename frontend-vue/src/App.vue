@@ -48,7 +48,7 @@ export default {
     // 表格
     .el-table{
       // 表格宽度
-      .user-handle>.cell{
+      .table-handle>.cell{
         min-width: 180px;
       }
     }

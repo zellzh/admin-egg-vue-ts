@@ -34,7 +34,7 @@ export default (appInfo: EggAppInfo) => {
   config.verify = {
     userUrls: [
       '/register',
-      '/users',
+      '/api/v1/users',
     ],
   };
 

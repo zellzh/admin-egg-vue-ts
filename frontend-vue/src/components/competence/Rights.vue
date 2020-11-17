@@ -32,7 +32,7 @@
           </el-row>
         </el-col>
         <el-col class="bar-right" :span="8">
-          <el-button type="primary" size="small" @click="addRightsVisible = true">添加权限</el-button>
+          <el-button type="primary" size="small" @click="rightsVisible = true">添加权限</el-button>
         </el-col>
       </el-row>
       <!-- 表格区域 -->
@@ -44,14 +44,33 @@
         <el-table-column type="index"/>
         <el-table-column
             v-for="(val, prop) in tableField"
-            :class-name="prop === 'userHandle'?'user-handle':''"
-            :key="prop"
+            :class-name="prop === 'handle'?'table-handle':''"
+            :key="val"
             :prop="prop"
             :label="val">
+          <!-- 等级 -->
+          <template scope="scope" v-if="prop === 'level'">
+            <el-tag type="danger" v-if="scope.row.level === 0">一级</el-tag>
+            <el-tag v-else-if="scope.row.level === 1">二级</el-tag>
+            <el-tag v-else type="success">三级</el-tag>
+          </template>
+          <!-- 状态 -->
+          <template scope="scope" v-else-if="prop === 'state'">
+            <el-switch
+                v-model="scope.row.rights_state"
+                @change="switchState(scope.row)"
+                inactive-color="#ff4949"/>
+          </template>
           <!-- 操作 -->
-          <template scope="scope" v-if="prop === 'userHandle'">
-            <el-button @click="openEdit(scope.row)" size="small" type="primary" icon="el-icon-edit"/>
-            <el-button size="small" @click.stop="showPop(scope.row,$event)" type="danger" icon="el-icon-delete"/>
+          <template scope="scope" v-else-if="prop === 'handle'">
+            <el-button size="mini"
+                       type="primary"
+                       @click="openEdit(scope.row)"
+                       icon="el-icon-edit"/>
+            <el-button size="mini"
+                       type="danger"
+                       @click.stop="showPop(scope.row,$event)"
+                       icon="el-icon-delete"/>
           </template>
         </el-table-column>
       </el-table>
@@ -67,52 +86,64 @@
         :page-size.sync="queryInfo.limit"
         layout="total, sizes, prev, pager, next, jumper"
         :total="totalCount"/>
-    <!-- 添加权限 -->
+    <!-- 添加|编辑权限 -->
     <el-dialog @open="addRightsOnOpen"
                :title="isEditRights ? '编辑权限' : '添加权限'" width="40%"
                :visible.sync="rightsVisible">
       <el-form :model="rightsData"
-               ref="addUserForm"
+               ref="addRightsForm"
+               :rules="rightsRules"
                label-width="auto"
                size="medium">
-        <el-form-item label="权限名称">
-          <el-input v-model="rightsData.username"
+        <el-form-item label="权限名称" prop="rights_name">
+          <el-input v-model="rightsData.rights_name"
                     ref="focus"
+                    autofocus
                     clearable
-                    prefix-icon="iconfont icon-user"
-                    placeholder="请输入用户名"/>
+                    prefix-icon="iconfont icon-option"
+                    placeholder="请输入权限名"/>
         </el-form-item>
-        <el-form-item label="权限类型">
-          <el-input v-model="rightsData.password"
-                    show-password
-                    ref="pwdInput"
-                    prefix-icon="iconfont icon-pwd"
-                    placeholder="请输入至少6位的密码"/>
+        <el-form-item label="权限描述" prop="rights_desc">
+          <el-input v-model="rightsData.rights_desc"
+                    prefix-icon="iconfont icon-option"
+                    placeholder="请输入描述内容"/>
         </el-form-item>
-        <el-form-item label="权限描述">
-          <el-input v-model="rightsData.email"
-                    prefix-icon="iconfont icon-email"
-                    placeholder="请输入邮箱"/>
+        <el-form-item label="权限类型" prop="rights_type">
+          <el-select v-model="rightsData.rights_type"
+                     @change="typeChangeCb">
+            <el-option :label="val"
+                       v-for="(val, key) in rightsOpts"
+                       :key="key"
+                       :value="key"/>
+          </el-select>
         </el-form-item>
-        <el-form-item label="权限等级">
-          <el-input v-model="rightsData.phone"
-                    prefix-icon="iconfont icon-phone"
-                    placeholder="请输入手机号"/>
+        <el-form-item label="父级权限" prop="pid">
+          <el-select v-model="rightsData.pid"
+                     :disabled="!rightsData.level">
+            <!-- 初始选项, 优化体验 -->
+            <el-option label="请选择"
+                       :value="0"
+                       v-show="!curRightsParents.length"/>
+            <el-option :label="parent.rights_name"
+                       v-for="parent in curRightsParents"
+                       :key="parent.id"
+                       :value="parent.id"/>
+          </el-select>
         </el-form-item>
-        <el-form-item label="权限路径">
-          <el-input v-model="rightsData.phone"
-                    prefix-icon="iconfont icon-phone"
-                    placeholder="请输入手机号"/>
+        <el-form-item label="权限路径" prop="rights_path">
+          <el-input v-model="rightsData.rights_path"
+                    :disabled="!+rightsData.level"
+                    prefix-icon="iconfont icon-option"
+                    placeholder="请输入路径"/>
         </el-form-item>
-        <el-form-item label="请求方式">
-          <el-input v-model="rightsData.phone"
-                    prefix-icon="iconfont icon-phone"
-                    placeholder="请输入手机号"/>
-        </el-form-item>
-        <el-form-item label="上级权限">
-          <el-input v-model="rightsData.phone"
-                    prefix-icon="iconfont icon-phone"
-                    placeholder="请输入手机号"/>
+        <el-form-item label="请求方式" prop="rights_method">
+          <el-select v-model="rightsData.rights_method"
+                     :disabled="+rightsData.level !== 2">
+            <el-option :label="val"
+                       v-for="(val, key) in rightsMethods"
+                       :key="key"
+                       :value="key"/>
+          </el-select>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -136,8 +167,9 @@
 </template>
 
 <script lang="ts">
-import {Component, Vue, Prop} from 'vue-property-decorator';
+import {Component, Vue, Prop, Ref} from 'vue-property-decorator';
 import Breadcrumb from "@/components/common/Breadcrumb.vue";
+import {Form} from "element-ui";
 
 @Component({
   name: 'Rights',
@@ -146,11 +178,12 @@ import Breadcrumb from "@/components/common/Breadcrumb.vue";
   },
 })
 export default class Rights extends Vue {
-  /*ref
+  /*ref & prop
     ====================================== */
+  @Ref() readonly addRightsForm?: Form
   @Prop() readonly naviPath!: any[]
 
-  /*data
+  /*data & computed
     ====================================== */
   // 搜索栏数据
   queryInfo = {
@@ -159,20 +192,38 @@ export default class Rights extends Vue {
     limit: 5,
     offset: 1,
   }
-  // 权限类型
-  rightsOpts = [
-    {label: '菜单权限', val: 'menu'},
-    {label: '路由权限', val: 'router'},
-    {label: '请求权限', val: 'action'},
-  ]
+  // 权限类型选项
+  rightsOpts = {
+    menu: '菜单权限',
+    router: '路由权限',
+    action: '请求权限',
+  }
+  // 权限请求方式
+  rightsMethods = {
+    get: 'GET请求',
+    post: 'POST请求',
+    put: 'PUT请求',
+    delete: 'DELETE请求',
+    all: 'ALL请求',
+  }
 
   // 权限框显示
   rightsVisible = false
-  // 编辑权限 | 添加权限
+  // 编辑权限 | 添加权限切换
   isEditRights = false
-  // 添加 | 编辑权限表单
-  rightsData: any = {}
-  // 删除权限 Pop
+  // 添加 | 编辑权限表单数据
+  rightsData: any = {
+    rights_name: '',
+    rights_type: '',
+    rights_desc: '',
+    rights_path: '',
+    rights_method: '',
+    level: null,
+    pid: null,
+  }
+  // 当前权限的父级
+  curRightsParents: any[] = []
+  // 删除权限 Pop 显示
   delRightsVisible = false
 
   // 表头
@@ -181,11 +232,11 @@ export default class Rights extends Vue {
     rights_desc: '权限描述',
     level: '权限等级',
     rights_path: '路径',
-    rightsHandle: '操作',
+    state: '状态',
+    handle: '操作',
   }
   // 表格数据
   tableData: any[] = []
-
   // 分页
   totalCount = 0
 
@@ -193,7 +244,12 @@ export default class Rights extends Vue {
    ====================================== */
   // 获取权限列表
   private async getRightsList() {
-
+    const res = await this.$api.getRights()
+    if (res && res.status === 200) {
+      const data = res.data.data
+      this.tableData = data;
+      // this.totalCount = data.count;
+    }
   }
 
   // 搜索栏查询
@@ -209,13 +265,100 @@ export default class Rights extends Vue {
   private async openEdit() {
 
   }
-  // 添加 | 编辑权限提交处理
-  private async onRightsHandle() {
+  // 权限状态切换
+  private async switchState() {
 
   }
-  // 添加权限打开的回调
+  // 权限表单打开的回调
   private async addRightsOnOpen() {
-
+    this.rightsData.level = null
+    this.addRightsForm?.resetFields()
+  }
+  // 权限类型切换的回调
+  private async typeChangeCb(type: string) {
+    let level: any;
+    switch (type) {
+      case 'menu': // 菜单权限, 清空部分字段
+        this.rightsData.level = level = 0;
+        this.rightsData.pid = 0;
+        this.rightsData.rights_path = '';
+        this.rightsData.rights_method = '';
+        this.curRightsParents = [];
+        break;
+      case 'router': // 路由权限, 清空部分字段
+        this.rightsData.rights_method = '';
+        this.rightsData.level = level = 1;
+        break;
+      case 'action':
+        this.rightsData.level = level = 2;
+        break;
+    }
+    level -= 1
+    if (level < 0) return
+    const res = await this.$api.getParentRights(level)
+    if (res && res.status === 200) {
+      this.curRightsParents = res.data.data
+    }
+  }
+  // 添加 | 编辑权限提交处理
+  private onRightsHandle() {
+    this.addRightsForm!.validate(async valid => {
+      if (!valid) {
+        this.$message.error('请完善权限信息')
+        return false
+      }
+      const res = await this.$api.addRights(this.rightsData)
+      if (res && res.status === 200) {
+        this.$message.success('添加成功')
+        await this.getRightsList()
+        this.rightsVisible = false
+      }
+    })
+  }
+  // 表单验证
+  private rightsRules = {
+    rights_name: [
+      {required: true, message: '权限名称不能为空', trigger: 'blur', transform(value: string){return value.trim()}},
+    ],
+    rights_desc: [
+      {transform(value: string) {return value.trim()}}
+    ],
+    rights_path: [
+      {validator: this.verifyPath, trigger: 'blur'}
+    ],
+    rights_type: [
+      {required: true, message: '请选择权限类型', trigger: ['blur', 'focus']}
+    ],
+    rights_method: [
+      {validator: this.verifyMethod, trigger: 'blur'}
+    ],
+    pid: [
+      {validator: this.verifyPid, trigger: 'blur'}
+    ],
+  }
+  // 路径验证
+  private verifyPath(rule: any, value:string, cb:any) {
+    if (this.rightsData.level && !value.trim()) {
+      cb('路由或请求权限必须填写路径')
+    } else {
+      cb()
+    }
+  }
+  // 请求方式验证
+  private verifyMethod(rule: any, value:string, cb:any) {
+    if (this.rightsData.rights_type === 'action' && !value){
+      cb('请求权限必须选择请求方式')
+    } else {
+      cb()
+    }
+  }
+  // 父级验证
+  private verifyPid(rule: any, value:string, cb:any) {
+    if (this.rightsData.level && !value) {
+      cb('非一级权限, 必须选择父级权限')
+    } else {
+      cb()
+    }
   }
 
   // 删除权限显示提示 Pop
@@ -237,10 +380,14 @@ export default class Rights extends Vue {
 
   }
 
+  /*watcher
+   ====================================== */
+
+
   /*LC(life-cycle)
     ====================================== */
   async created() {
-
+    await this.getRightsList()
   }
 
 }

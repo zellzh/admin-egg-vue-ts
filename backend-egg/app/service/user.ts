@@ -4,7 +4,7 @@ import { Brackets } from 'typeorm';
 
 export default class User extends Service {
   // 查询用户
-  public async retrieve(user?: any) {
+  public async retrieve(user?: Partial<Manager>) {
     const { ctx } = this;
     if (!user) return ctx.repo.Manager.find();
     const { username, email, phone } = user;

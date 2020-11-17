@@ -19,7 +19,7 @@ module.exports = {
   // 删除空数据, 防止保存空字符串
   deleteEmpty<T>(data: T) {
     Object.keys(data).forEach(key => {
-      data[key] || delete data[key];
+      data[key] === 0 || data[key] || delete data[key];
     });
   },
 

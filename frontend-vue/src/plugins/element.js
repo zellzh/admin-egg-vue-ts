@@ -3,7 +3,7 @@ import {
   Button, Icon, Message, Image,
   Form, FormItem, Input, Checkbox, Select, Option,
   Table, TableColumn, Pagination, Upload,
-  Switch, Tooltip, Dialog, MessageBox, Popover,
+  Switch, Tooltip, Dialog, MessageBox, Popover, Tag,
   Tabs, TabPane,
   Container, Header, Main, Aside, Row, Col,
   Menu, Submenu, MenuItem, Breadcrumb, BreadcrumbItem, Card,
@@ -36,6 +36,7 @@ Vue.use(Switch)
 Vue.use(Tooltip)
 Vue.use(Dialog)
 Vue.use(Popover)
+Vue.use(Tag)
 
 Vue.use(Container)
 Vue.use(Header)

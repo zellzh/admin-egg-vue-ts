@@ -60,7 +60,7 @@
         <el-table-column type="index"/>
         <el-table-column
             v-for="(val, prop) in tableField"
-            :class-name="prop === 'userHandle'?'user-handle':''"
+            :class-name="prop === 'userHandle'?'table-handle':''"
             :key="prop"
             :prop="prop"
             :label="val">
@@ -73,10 +73,16 @@
           </template>
           <!-- 操作 -->
           <template scope="scope" v-else-if="prop === 'userHandle'">
-            <el-button @click="openEdit(scope.row)" size="small" type="primary" icon="el-icon-edit"/>
-            <el-button size="small" @click.stop="showPop(scope.row,$event)" type="danger" icon="el-icon-delete"/>
+            <el-button size="mini"
+                       @click="openEdit(scope.row)"
+                       type="primary"
+                       icon="el-icon-edit"/>
+            <el-button size="mini"
+                       @click.stop="showPop(scope.row,$event)"
+                       type="danger"
+                       icon="el-icon-delete"/>
             <el-tooltip content="分配角色" :enterable="false" placement="top">
-              <el-button size="small" type="warning" icon="el-icon-setting"/>
+              <el-button size="mini" type="warning" icon="el-icon-setting"/>
             </el-tooltip>
           </template>
           <!-- 其他 -->
@@ -354,7 +360,7 @@ export default class Users extends Vue {
     // 数据预校验
     this.addUserForm!.validate(async valid => {
       if (!valid) {
-        this.$message.error('请完善注册信息')
+        this.$message.error('请完善用户信息')
         return false
       }
       let res = await this.$api.addUser(this.addUserData)

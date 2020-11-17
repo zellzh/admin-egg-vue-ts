@@ -29,7 +29,9 @@
                     placeholder="请输入至少6位的密码"/>
         </el-form-item>
         <!-- 验证码 -->
-        <el-form-item label="验证码" class="reg-captcha" prop="captcha">
+        <el-form-item label="验证码"
+                      class="reg-captcha"
+                      prop="captcha">
           <el-input v-model="userInfo.captcha"
                     prefix-icon="iconfont icon-captcha"
                     placeholder="请输入验证码">

@@ -10,11 +10,19 @@ export interface Api {
   register(data: object): AxiosResponse
   login(data: object): AxiosResponse
 
-  /* admin
+  /* users
     ================================ */
   getUsers(data?: object): AxiosResponse
   addUser(data: object): AxiosResponse
   delUser(id: number): AxiosResponse
   updateUser(id: number, data: object): AxiosResponse
   exportUsers(): AxiosResponse
+
+  /* rights
+    ================================ */
+  getRights(type?: string|object, data?: object): AxiosResponse
+  getParentRights(level: number): AxiosResponse
+  addRights(data: object): AxiosResponse
+  delRights(id: number): AxiosResponse
+  updateRights(id: number, data: object): AxiosResponse
 }
