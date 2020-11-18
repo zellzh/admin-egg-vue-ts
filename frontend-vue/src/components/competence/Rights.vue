@@ -110,6 +110,7 @@
         </el-form-item>
         <el-form-item label="权限类型" prop="rights_type">
           <el-select v-model="rightsData.rights_type"
+                     :disabled="isEditRights"
                      @change="typeChangeCb">
             <el-option :label="val"
                        v-for="(val, key) in rightsOpts"
@@ -132,13 +133,13 @@
         </el-form-item>
         <el-form-item label="权限路径" prop="rights_path">
           <el-input v-model="rightsData.rights_path"
-                    :disabled="!+rightsData.level"
+                    :disabled="!rightsData.level"
                     prefix-icon="iconfont icon-option"
                     placeholder="请输入路径"/>
         </el-form-item>
         <el-form-item label="请求方式" prop="rights_method">
           <el-select v-model="rightsData.rights_method"
-                     :disabled="+rightsData.level !== 2">
+                     :disabled="rightsData.level !== 2">
             <el-option :label="val"
                        v-for="(val, key) in rightsMethods"
                        :key="key"
@@ -277,23 +278,10 @@ export default class Rights extends Vue {
     await this.getRightsList()
   }
 
-  // 点击添加权限
+  // 添加权限
   private setAddRights() {
     this.rightsVisible = true
     this.isEditRights = false
-  }
-  // 权限表单打开的回调
-  private async addRightsOnOpen() {
-    this.rightsData.level = null
-    this.addRightsForm?.resetFields()
-    if (this.isEditRights) {
-      // 获取父级
-      const level = this.curRightsData.level
-      level && await this.setCurParents(level)
-      // 复用表单并填充数据
-      this.rightsData = Object.assign(this.rightsData, this.curRightsData)
-
-    }
   }
   // 权限类型切换的回调
   private async typeChangeCb(type: string) {
@@ -324,22 +312,6 @@ export default class Rights extends Vue {
     if (res && res.status === 200) {
       this.curRightsParents = res.data.data
     }
-  }
-
-  // 添加 | 编辑权限提交处理
-  private onRightsHandle() {
-    this.addRightsForm!.validate(async valid => {
-      if (!valid) {
-        this.$message.error('请完善权限信息')
-        return false
-      }
-      const res = await this.$api.addRights(this.rightsData)
-      if (res && res.status === 200) {
-        this.$message.success(this.isEditRights ? '更新成功' : '添加成功')
-        await this.getRightsList()
-        this.rightsVisible = false
-      }
-    })
   }
   // 表单验证
   private rightsRules = {
@@ -372,7 +344,7 @@ export default class Rights extends Vue {
   }
   // 请求方式验证
   private verifyMethod(rule: any, value:string, cb:any) {
-    if (this.rightsData.rights_type === 'action' && value && !value){
+    if (this.rightsData.rights_type === 'action' && !value){
       cb('请求权限必须选择请求方式')
     } else {
       cb()
@@ -394,6 +366,18 @@ export default class Rights extends Vue {
     this.isEditRights = true
     this.curRightsData = row
   }
+  // 权限表单打开的回调
+  private async addRightsOnOpen() {
+    this.rightsData.level = null
+    this.addRightsForm?.resetFields()
+    if (this.isEditRights) {
+      // 获取父级
+      const level = this.curRightsData.level
+      level && await this.setCurParents(level)
+      // 复用表单并填充数据
+      Object.assign(this.rightsData, this.curRightsData)
+    }
+  }
   // 权限状态切换
   private async switchState(row: any) {
     const { id, ...rights } = row
@@ -401,6 +385,23 @@ export default class Rights extends Vue {
     if (res && res.status === 200) {
       this.$message.success('更新状态成功')
     }
+  }
+  // 添加 | 编辑权限提交处理
+  private onRightsHandle() {
+    this.addRightsForm!.validate(async valid => {
+      if (!valid) {
+        this.$message.error('请完善权限信息')
+        return false
+      }
+      const res = this.isEditRights ?
+          await this.$api.updateRights(this.rightsData.id, this.rightsData) :
+          await this.$api.addRights(this.rightsData)
+      if (res && res.status === 200) {
+        this.$message.success(this.isEditRights ? '更新成功' : '添加成功')
+        await this.getRightsList()
+        this.rightsVisible = false
+      }
+    })
   }
 
   // 显示删除 pop

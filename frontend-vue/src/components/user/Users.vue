@@ -564,7 +564,6 @@ export default class Users extends Vue {
   /*LC(life-cycle)
     ====================================== */
   async created() {
-    console.log(this.naviPath);
     await this.getUserList()
     // 点击 dom 关闭 pop
     document.addEventListener('click', () => {

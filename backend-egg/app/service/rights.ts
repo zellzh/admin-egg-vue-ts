@@ -10,7 +10,7 @@ export default class User extends Service {
     if (typeof param === 'object') {
       ctx.deleteEmpty(param);
       const { rights_name, rights_type, rights_path, rights_method } = param;
-      return ctx.repo.Rights.findOne({
+      return ctx.repo.Rights.find({
         where: [
           { rights_name, rights_type },
           { rights_path, rights_method },
@@ -52,7 +52,6 @@ export default class User extends Service {
   // 添加
   public async create(rights: Partial<Rights>) {
     const { ctx } = this;
-    ctx.deleteEmpty(rights);
     const res = ctx.repo.Rights.create(rights);
     return ctx.repo.Rights.save(res);
   }
@@ -67,30 +66,11 @@ export default class User extends Service {
   public async update(id: number, updateInfo: Partial<Rights>) {
     const { ctx } = this;
     const {
-      rights_name, level, pid, rights_type, rights_state,
+      pid = 0, rights_state = true,
       rights_method, rights_path, rights_desc,
     } = updateInfo;
-    // 删除空串或者未变更的数据
-    delete updateInfo.rights_name;
-    rights_desc || delete updateInfo.rights_desc;
-    if (rights_type || rights_method || rights_path) {
-      const res = await ctx.repo.Rights.findOne({
-        where: [
-          { rights_name, rights_type },
-          { rights_path, rights_method },
-        ],
-      });
-      if (res.id !== id) return '权限类名或路由重复';
-    }
-
-    await ctx.repo.Rights.update(id, {
-      level,
-      pid,
-      rights_type,
-      rights_method,
-      rights_path,
-      rights_desc,
-      rights_state,
+    return ctx.repo.Rights.update(id, {
+      pid, rights_state, rights_path, rights_method, rights_desc,
     });
   }
 }

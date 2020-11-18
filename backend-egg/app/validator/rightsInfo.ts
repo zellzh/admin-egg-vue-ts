@@ -18,7 +18,7 @@ export default object.keys({
     ],
     otherwise: verifyPath(),
   }),
-  rights_method: string.empty('').valid('get', 'post', 'put', 'delete', 'all')
+  rights_method: string.trim().empty('').valid('get', 'post', 'put', 'delete', 'all')
     .when('rights_type', {
       is: 'action',
       then: string.required(),

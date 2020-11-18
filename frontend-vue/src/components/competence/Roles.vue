@@ -1,22 +1,23 @@
 <template>
-  <div>
-    Roles
+  <div class="role-container">
+    <Breadcrumb :navi-path="naviPath"/>
   </div>
 </template>
 
 <script lang="ts">
-import {Component, Vue} from 'vue-property-decorator';
+import {Component, Vue, Prop} from 'vue-property-decorator';
+import Breadcrumb from "@/components/common/Breadcrumb.vue";
 
 @Component({
   name: 'Roles',
   components: {
-
+    Breadcrumb,
   },
 })
 export default class Roles extends Vue {
-  /*ref
+  /*ref & prop
     ====================================== */
-
+  @Prop() readonly naviPath!: any[]
 
   /*data
     ====================================== */
@@ -33,5 +34,7 @@ export default class Roles extends Vue {
 </script>
 
 <style scoped lang="scss">
+::v-deep .role-container{
 
+}
 </style>
