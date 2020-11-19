@@ -6,6 +6,7 @@ import ExportGithub from '../../../app/controller/github';
 import ExportHome from '../../../app/controller/home';
 import ExportManager from '../../../app/controller/manager';
 import ExportRights from '../../../app/controller/rights';
+import ExportRole from '../../../app/controller/role';
 import ExportUser from '../../../app/controller/user';
 import ExportUtils from '../../../app/controller/utils';
 
@@ -15,6 +16,7 @@ declare module 'egg' {
     home: ExportHome;
     manager: ExportManager;
     rights: ExportRights;
+    role: ExportRole;
     user: ExportUser;
     utils: ExportUtils;
   }

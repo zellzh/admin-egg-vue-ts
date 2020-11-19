@@ -3,7 +3,7 @@
  */
 import { Application } from 'egg';
 
-export default (app: Application) => {
+export = (app: Application) => {
   const { controller, router } = app;
   router.get('/api/v1/users', controller.user.getUser);
   router.post('/api/v1/users', controller.user.addUser);

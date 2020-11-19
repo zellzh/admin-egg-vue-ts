@@ -17,6 +17,7 @@ module.exports = {
   async smsCode(to: string): Promise<unknown> {
     return smsCode.send(this.ctx, to);
   },
+
   // 验证码校验
   verifyCaptcha(clientCode: string, type: string) {
     const { ctx } = this;
@@ -27,14 +28,16 @@ module.exports = {
     }
     switch (type) {
       case RegisterType.Normal:
-        return svgCode.verify(ctx, clientCode); // 图形验证码
+        svgCode.verify(ctx, clientCode); // 图形验证码
+        break;
       case RegisterType.Email:
-        return emailCode.verify(ctx, clientCode); // 邮箱验证码
+        emailCode.verify(ctx, clientCode); // 邮箱验证码
+        break;
       case RegisterType.Phone:
-        return smsCode.verify(ctx, clientCode); // 邮箱验证码
+        smsCode.verify(ctx, clientCode); // 短信验证码
+        break;
       default:
-        // throw new Error('无效的注册类型');
-        return '无效的注册类型';
+        ctx.throw('无效的注册类型', 400);
     }
   },
 

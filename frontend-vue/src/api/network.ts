@@ -11,6 +11,10 @@ axios.defaults.withCredentials = true // 开启携带 cookie
 
 // 记录请求数
 let count = 0
+// URL 白名单
+const whiteUrl = [
+  '/isExist'
+]
 
 // 添加请求拦截器
 axios.interceptors.request.use(
@@ -83,6 +87,7 @@ async function updateToken(response: AxiosResponse) {
 
 // 错误处理
 function errHandle(e: AxiosError) {
+  if (e.config.url && whiteUrl.includes(e.config.url)) return;
   const errData = e.response?.data
   errData && errData.meta ?
     vue.$message.error(errData.meta.msg) :

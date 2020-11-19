@@ -349,6 +349,9 @@ export default class Users extends Vue {
   private async onDelUser() {
     const res = await this.$api.delUser(this.delUserData.id)
     if (res && res.status === 200) {
+      // 处理删除最后一条空白 table 的 bug
+      this.totalCount - 1 === (this.queryInfo.offset - 1) * this.queryInfo.limit
+      && this.queryInfo.offset--
       await this.getUserList()
       this.$message.success('删除成功')
     }

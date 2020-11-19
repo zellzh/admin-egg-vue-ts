@@ -1,7 +1,6 @@
 import { Application } from 'egg';
 import captchaRote from './routes/captcha';
 import account from './routes/account';
-import adminUsers from './routes/admin-users';
 
 export default (app: Application) => {
   const { controller, router } = app;
@@ -16,10 +15,7 @@ export default (app: Application) => {
 
   /* admin: RESTful API
     =========================================== */
-  adminUsers(app);
-  router.get('/api/v1/rights/:view', controller.rights.getRights);
-  router.get('/api/v1/rights/parents/:level', controller.rights.getParents);
-  router.post('/api/v1/rights', controller.rights.addRights);
-  router.delete('/api/v1/rights/:id', controller.rights.delRights);
-  router.put('/api/v1/rights/:id', controller.rights.updateRights);
+  require('./routes/users')(app);
+  require('./routes/rights')(app);
+  router.resources('right', '/api/v1/rights', controller.rights);
 };

@@ -78,6 +78,7 @@
     <!-- 分页区域 -->
     <el-pagination
         background
+        v-if="updatePage"
         :pager-count="5"
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
@@ -168,7 +169,7 @@
 </template>
 
 <script lang="ts">
-import {Component, Vue, Prop, Ref} from 'vue-property-decorator';
+import {Component, Vue, Prop, Ref, Watch} from 'vue-property-decorator';
 import Breadcrumb from "@/components/common/Breadcrumb.vue";
 import {Form, Popover} from "element-ui";
 
@@ -255,6 +256,8 @@ export default class Rights extends Vue {
   tableData: any[] = []
   // 分页
   totalCount = 0
+  // 分页更新
+  updatePage = true
 
   /*method
    ====================================== */
@@ -426,6 +429,9 @@ export default class Rights extends Vue {
   private async onDelRights() {
     const res = await this.$api.delRights(this.delRID)
     if (res && res.status === 200) {
+      // 处理删除最后一条空白 table 的 bug
+      this.totalCount - 1 === (this.queryInfo.offset - 1) * this.queryInfo.limit
+        && this.queryInfo.offset--
       await this.getRightsList()
       this.$message.success('删除成功')
     }

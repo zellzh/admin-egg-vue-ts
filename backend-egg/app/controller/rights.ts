@@ -10,102 +10,70 @@ export default class RightsController extends Controller {
     const { ctx } = this;
     const { view } = ctx.params;
     const queryInfo = ctx.query;
-    try {
-      let res;
-      // 分页查询
-      if (Object.keys(queryInfo).length && view === 'list') {
-        res = await ctx.service.rights.searchQuery(queryInfo);
-      } else { // 查询所有
-        res = await ctx.service.rights.retrieve(view);
-      }
-      ctx.sendResult(res, 200, '获取权限成功');
-    } catch (e) {
-      ctx.logger.error(e);
-      ctx.sendResult(null, 500, '获取失败: 内部错误!');
+    let res;
+    // 分页查询
+    if (Object.keys(queryInfo).length && view === 'list') {
+      res = await ctx.service.rights.searchQuery(queryInfo);
+    } else { // 查询所有
+      res = await ctx.service.rights.retrieve(view);
     }
+    ctx.sendResult(res, 200, '获取权限成功');
   }
   // 查询父级
   public async getParents() {
     const { ctx } = this;
     const { level } = ctx.params;
-    try {
-      const res = await ctx.service.rights.getParents(level);
-      ctx.sendResult(res, 200, '查询成功');
-    } catch (e) {
-      ctx.logger.error(e);
-      ctx.sendResult(null, 500, '查询失败: 内部错误!');
-    }
+    const res = await ctx.service.rights.getParents(level);
+    ctx.sendResult(res, 200, '查询成功');
   }
 
   // 添加
-  public async addRights() {
+  public async create() {
     const { ctx } = this;
     const rights = ctx.request.body;
-    try {
-      // 1.验证数据
-      const { error } = verifyRights.validate(rights);
-      if (error) {
-        ctx.logger.warn(error.message);
-        return ctx.sendResult(null, 400, '添加失败: 提交的数据格式不符!');
-      }
-      // 2.查询权限是否重复
-      const temp = await ctx.service.rights.retrieve(rights);
-      if (temp.length) return ctx.sendResult(temp, 400, '添加失败: 权限类名或路由重复!');
-      // 3.添加权限
-      const res = await ctx.service.rights.create(rights);
-      ctx.sendResult(res, 200, '添加成功');
-    } catch (e) {
-      ctx.logger.error(e);
-      ctx.sendResult(null, 500, '添加失败: 内部错误!');
-    }
+    // 1.验证数据
+    const { error } = verifyRights.validate(rights);
+    if (error) throw Object.assign(error, { status: 422 });
+
+    // 2.查询权限是否重复
+    const temp = await ctx.service.rights.retrieve(rights);
+    temp.length && ctx.throw('权限类名或路由重复!', 400, { details: temp });
+
+    // 3.添加权限
+    const res = await ctx.service.rights.create(rights);
+    ctx.sendResult(res, 200, '添加成功');
   }
 
   // 更新
-  public async updateRights() {
+  public async update() {
     const { ctx } = this;
     let { id } = ctx.params;
     id = parseInt(id);
     const rights = ctx.request.body;
-    try {
-      // 1.验证数据
-      const { error } = verifyRights.validate(rights);
-      if (error) {
-        ctx.logger.warn(error.message);
-        return ctx.sendResult(null, 400, '添加失败: 提交的数据格式不符!');
-      }
-      // 2.查询权限是否重复
-      const res = await ctx.service.rights.retrieve(rights);
-      const temp = res.find(item => item.id !== id);
-      if (temp) {
-        return ctx.sendResult(temp, 400, '添加失败: 权限类名或路由重复!');
-      }
-      // 3.更新
-      const updateResult = await ctx.service.rights.update(id, rights);
-      if (updateResult.affected) {
-        ctx.sendResult(null, 200, '更新成功');
-      } else {
-        ctx.sendResult(null, 400, '更新失败: 请检查参数!');
-      }
-    } catch (e) {
-      ctx.logger.error(e);
-      ctx.sendResult(null, 500, '更新失败: 内部错误!');
-    }
+    // 1.验证数据
+    const { error } = verifyRights.validate(rights);
+    if (error) throw Object.assign(error, { status: 422 });
+
+    // 2.查询权限是否重复
+    const res = await ctx.service.rights.retrieve(rights);
+    const temp = res.find(item => item.id !== id);
+    temp && ctx.throw('权限类名或路由重复!', 400, { details: temp });
+
+    // 3.更新
+    const updateResult = await ctx.service.rights.update(id, rights);
+    updateResult.affected ?
+      ctx.sendResult(null, 200, '更新成功') :
+      ctx.throw('参数不符', 400, { details: rights });
   }
 
   // 删除
-  public async delRights() {
+  public async destroy() {
     const { ctx } = this;
-    const { id } = ctx.params;
-    try {
-      const res = await ctx.service.rights.delete(parseInt(id));
-      if (res.affected) {
-        ctx.sendResult(null, 200, '删除权限成功');
-      } else {
-        ctx.sendResult(null, 400, '删除失败: 请检查参数!');
-      }
-    } catch (e) {
-      ctx.logger.error(e);
-      ctx.sendResult(null, 500, '删除失败: 内部错误!');
-    }
+    let { id } = ctx.params;
+    id = parseInt(id);
+    const res = await ctx.service.rights.delete(id);
+    res.affected ?
+      ctx.sendResult(null, 200, '删除权限成功') :
+      ctx.throw('参数不符', 400, { details: id });
   }
 }

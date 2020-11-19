@@ -34,17 +34,13 @@ export default {
       // text: "Hello world?", // 纯文本
       html: emailModule(captcha, expire), // html 模板
     };
-    try {
-      // 3.发送成功时, 保存验证码
-      const res = await transporter.sendMail(info);
-      ctx.session.emailCode = {
-        code: captcha,
-        expire: Date.now() + expire * 1000, // 过期时间
-      };
-      return res;
-    } catch (e) {
-      throw e;
-    }
+    // 3.发送成功时, 保存验证码
+    const res = await transporter.sendMail(info);
+    ctx.session.emailCode = {
+      code: captcha,
+      expire: Date.now() + expire * 1000, // 过期时间
+    };
+    return res;
   },
 
   // 验证邮箱
@@ -59,17 +55,14 @@ export default {
       code = serverCaptcha.code;
       expire = serverCaptcha.expire;
     } catch (error) {
-      // throw new Error('验证码失效');
-      return '验证码失效';
+      ctx.throw('验证码失效', 400);
     }
 
     if (Date.now() >= expire) { // 判断过期
       ctx.session.emailCode = null;
-      // throw new Error('验证码已过期');
-      return '验证码已过期';
+      ctx.throw('验证码已过期', 400);
     } else if (clientCode.toLowerCase() !== code) { // 判断错误
-      // throw new Error('验证码错误');
-      return '验证码错误';
+      ctx.throw('验证码错误', 400);
     }
     ctx.session.emailCode = null; // 验证码一次性
   },

@@ -69,7 +69,7 @@ export default class NormalForm extends Vue {
   /*data
     ====================================== */
   // 验证码 url
-  imgCode = baseUrl + account.imgCode
+  imgCode = ''
   // 用户数据
   userInfo = {
     username: '',

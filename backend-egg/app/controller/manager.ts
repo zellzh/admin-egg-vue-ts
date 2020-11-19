@@ -5,70 +5,52 @@ export default class ManagerController extends Controller {
   public async isExist() {
     const { ctx } = this;
     const userinfo = ctx.request.body;
-    try {
-      const res = await ctx.service.manager.retrieve(userinfo);
-      res ?
-        ctx.sendResult(res, 200, '已查询到用户') :
-        ctx.sendResult(null, 200, '未查询到用户', 400);
-    } catch (e) {
-      ctx.logger.error(e);
-      ctx.sendResult(null, 500, '内部错误, 查询失败');
-    }
+    const res = await ctx.service.manager.retrieve(userinfo);
+    res ?
+      ctx.sendResult(res, 200, '已查询到用户') :
+      ctx.sendResult(null, 204, '未查询到用户');
   }
 
   // 注册
   public async register() {
     const { ctx } = this;
     const userinfo = ctx.request.body;
-    try {
-      // 1.验证码校验
-      const invalid = ctx.helper.verifyCaptcha(userinfo.captcha, userinfo.userType);
-      if (invalid) return ctx.sendResult(null, 400, invalid);
+    // 1.验证码校验
+    ctx.helper.verifyCaptcha(userinfo.captcha, userinfo.userType);
 
-      // 2.查询用户
-      const dbUserinfo = await ctx.service.manager.retrieve(userinfo);
-      if (dbUserinfo) return ctx.sendResult(null, 400, '用户已存在');
+    // 2.查询用户
+    const dbUserinfo = await ctx.service.manager.retrieve(userinfo);
+    dbUserinfo && ctx.throw('用户已存在', 400, { details: dbUserinfo });
 
-      // 3.添加数据库
-      await ctx.service.manager.create(userinfo);
-      // 4.绑定默认角色: 管理员
+    // 3.添加数据库
+    await ctx.service.manager.create(userinfo);
+    // 4.绑定默认角色: 管理员
 
-      ctx.sendResult(null, 200, '注册成功');
-    } catch (e) {
-      ctx.logger.error(e);
-      ctx.sendResult(null, 500, '内部错误, 注册失败!');
-    }
+    ctx.sendResult(null, 200, '注册成功');
   }
 
   // 登录
   public async login() {
     const { ctx } = this;
     const userinfo = ctx.request.body;
-    try {
-      // 1.验证码校验
-      const invalid = ctx.helper.verifyCaptcha(userinfo.captcha, userinfo.userType);
-      if (invalid) return ctx.sendResult(null, 400, invalid);
+    // 1.验证码校验
+    ctx.helper.verifyCaptcha(userinfo.captcha, userinfo.userType);
 
-      // 2.查询用户
-      let dbUserinfo = await ctx.service.manager.retrieve(userinfo);
-      if (!dbUserinfo) {
-        return ctx.sendResult(null, 400, '用户不存在');
-      }
-      // 3.验证密码
-      const res = await ctx.helper.compare(userinfo.password, dbUserinfo.password);
-      // 4.数据处理
-      if (res) { // true 则密码正确
-        // ctx.session.user = dbUserinfo; // session 后端保存数据
+    // 2.查询用户
+    let dbUserinfo = await ctx.service.manager.retrieve(userinfo);
+    dbUserinfo || ctx.throw('用户不存在', 400);
 
-        // 前端 token 保存数据
-        dbUserinfo = this.getToken(dbUserinfo);
-        ctx.sendResult(dbUserinfo, 200, '登录成功');
-      } else { // false 则密码错误
-        ctx.sendResult(null, 400, '密码错误');
-      }
-    } catch (e) {
-      ctx.logger.error(e);
-      ctx.sendResult(null, 500, '内部错误, 登录失败!');
+    // 3.验证密码
+    const res = await ctx.helper.compare(userinfo.password, dbUserinfo.password);
+    // 4.验证后数据保存
+    if (res) { // true 则密码正确
+      // ctx.session.user = dbUserinfo; // session 后端保存数据
+
+      // 前端 token 保存数据
+      dbUserinfo = this.getToken(dbUserinfo);
+      ctx.sendResult(dbUserinfo, 200, '登录成功');
+    } else { // false 则密码错误
+      ctx.throw('密码错误', 400, userinfo);
     }
   }
   // 生成登录 token

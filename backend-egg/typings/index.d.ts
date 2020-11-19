@@ -11,6 +11,6 @@ declare module 'egg' {
     uuidv4: () => string
   }
   interface IHelper { // helper 接口合并
-    verifyCaptcha: (clientCode: string, type: string) => string | undefined;
+    verifyCaptcha: (clientCode: string, type: string) => void;
   }
 }

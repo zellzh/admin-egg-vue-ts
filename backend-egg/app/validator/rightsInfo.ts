@@ -11,14 +11,16 @@ function verifyPath() {
 }
 
 export default object.keys({
-  rights_path: string.trim().empty('').when('rights_type', {
-    switch: [ // 多个条件验证
-      { is: 'router', then: verifyPath().required() },
-      { is: 'action', then: verifyPath().required() },
-    ],
-    otherwise: verifyPath(),
-  }),
-  rights_method: string.trim().empty('').valid('get', 'post', 'put', 'delete', 'all')
+  rights_path: string.trim().empty([ null, '' ])
+    .when('rights_type', {
+      switch: [ // 多个条件验证
+        { is: 'router', then: verifyPath().required() },
+        { is: 'action', then: verifyPath().required() },
+      ],
+      otherwise: verifyPath(),
+    }),
+  rights_method: string.trim().empty([ null, '' ])
+    .valid('get', 'post', 'put', 'delete', 'all')
     .when('rights_type', {
       is: 'action',
       then: string.required(),
@@ -32,7 +34,7 @@ export default object.keys({
       then: 0,
     })
     .messages({ // 自定义当前验证的错误信息
-      'any.only': '一级权限的 {#key} 只能是 {#valids}',
+      'any.only': '一级权限的 {#key} 只能是数组 {#valids} 其中之一',
     }),
 })
   // 必须传数据 value, 防止 undefined 验证通过

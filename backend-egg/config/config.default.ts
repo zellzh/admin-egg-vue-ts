@@ -23,6 +23,7 @@ export default (appInfo: EggAppInfo) => {
   config.middleware = [
     'authorize',
     'verify',
+    'errorHandler',
   ];
   // 鉴权中间件
   config.authorize = {
