@@ -46,11 +46,12 @@ export default {
     }
 
     // 表格
-    .el-table{
-      // 表格宽度
-      .table-handle>.cell{
-        min-width: 180px;
-      }
+    .el-table .cell{
+      width: auto;
+    }
+    // 表格操作栏宽度
+    .table-handle>.cell{
+      min-width: 180px;
     }
   }
 

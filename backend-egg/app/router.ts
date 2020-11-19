@@ -17,5 +17,6 @@ export default (app: Application) => {
     =========================================== */
   require('./routes/users')(app);
   require('./routes/rights')(app);
-  router.resources('right', '/api/v1/rights', controller.rights);
+  router.resources('rights', '/api/v1/rights', controller.rights);
+  router.resources('roles', '/api/v1/roles', controller.role);
 };

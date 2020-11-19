@@ -1,9 +1,12 @@
+/*
+ * 账号注册 | 登录 url 和 api
+ */
 import actions from "@/api/network";
 
 // 更新 refresh_token
-export const refreshTokenApi = 'refresh_token';
+export const refreshTokenUrl = 'refresh_token';
 
-// register/login 接口
+// account url
 const url = {
   imgCode: "/imgCode",
   emailCode: "/emailCode",
@@ -16,8 +19,8 @@ const url = {
   github: '/passport/github',
 }
 
-// register/login 请求方法
-export const accountAction = {
+// account api
+export const accountApi = {
   sendEmail: (data: object) => actions.get(url.emailCode, data),
   sendSms: (data: object) => actions.post(url.smsCode, data),
   inquirer: (data: object) => actions.post(url.isExist, data),

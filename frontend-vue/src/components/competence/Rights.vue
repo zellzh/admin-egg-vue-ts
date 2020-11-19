@@ -78,7 +78,6 @@
     <!-- 分页区域 -->
     <el-pagination
         background
-        v-if="updatePage"
         :pager-count="5"
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
@@ -256,8 +255,6 @@ export default class Rights extends Vue {
   tableData: any[] = []
   // 分页
   totalCount = 0
-  // 分页更新
-  updatePage = true
 
   /*method
    ====================================== */
@@ -370,16 +367,20 @@ export default class Rights extends Vue {
     this.curRightsData = row
   }
   // 权限表单打开的回调
-  private async addRightsOnOpen() {
-    this.rightsData.level = null
-    this.addRightsForm?.resetFields()
-    if (this.isEditRights) {
-      // 获取父级
-      const level = this.curRightsData.level
-      level && await this.setCurParents(level)
-      // 复用表单并填充数据
-      Object.assign(this.rightsData, this.curRightsData)
-    }
+  private addRightsOnOpen() {
+    // 更新 dom 后再重置
+    this.$nextTick(async () => {
+      this.rightsData.level = null
+      delete this.rightsData.id
+      this.addRightsForm?.resetFields()
+      if (this.isEditRights) {
+        // 获取父级
+        const level = this.curRightsData.level
+        level && await this.setCurParents(level)
+        // 复用表单并填充数据
+        Object.assign(this.rightsData, this.curRightsData)
+      }
+    })
   }
   // 权限状态切换
   private async switchState(row: any) {

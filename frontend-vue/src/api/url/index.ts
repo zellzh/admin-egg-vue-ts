@@ -1,4 +1,7 @@
-import account, { refreshTokenApi } from './account'
+/*
+ * 所有 url 出口
+ */
+import account, { refreshTokenUrl } from './account'
 import users from './users'
 import rights from './rights'
 import roles from './roles'
@@ -8,7 +11,7 @@ const baseUrl = process.env.VUE_APP_BASE_API;
 
 export {
   baseUrl,
-  refreshTokenApi,
+  refreshTokenUrl,
   account,
   users,
   rights,
@@ -21,5 +24,5 @@ export default {
   ...rights,
   ...roles,
   baseUrl,
-  refreshTokenApi,
+  refreshTokenUrl,
 }

@@ -2,28 +2,32 @@
  * role --- 角色列表相关操作
  */
 import { Controller } from 'egg';
+import verifyRole from '../validator/roleInfo';
 
 export default class RoleController extends Controller {
   // 查询
   public async index() {
     const { ctx } = this;
     const queryInfo = ctx.query;
-    try {
-      const res = await ctx.service.user.retrieve(queryInfo);
-      ctx.sendResult(res, 200, '获取成功');
-    } catch (e) {
-      ctx.logger.error(e);
-      ctx.sendResult(null, 400, '获取失败: 内部错误');
-    }
+    const res = await ctx.service.role.retrieve(queryInfo);
+    ctx.sendResult(res, 200, '获取成功');
   }
 
   // 添加
   public async create() {
     const { ctx } = this;
-    const info = ctx.request.body;
-    // 2.添加数据库
-    const role = await ctx.service.manager.create(info);
-    console.log(role);
+    const role = ctx.request.body;
+    // 1.验证数据
+    const { error } = verifyRole.validate(role);
+    if (error) throw Object.assign(error, { status: 422 });
+
+    // 2.查询角色是否存在
+    const temp = await ctx.service.role.retrieve(role);
+    temp.length && ctx.throw('角色已存在', 400);
+
+    // 3.添加角色
+    const res = await ctx.service.role.create(role);
+    ctx.sendResult(res, 200, '添加成功');
   }
 
   // 更新
@@ -32,8 +36,20 @@ export default class RoleController extends Controller {
     let { id } = ctx.params;
     id = parseInt(id);
     const role = ctx.request.body;
-    const res = await ctx.service.user.update(parseInt(id), role);
-    console.log(res);
+    // 1.验证数据
+    const { error } = verifyRole.validate(role);
+    if (error) throw Object.assign(error, { status: 422 });
+
+    // 2.查询角色是否重复
+    const temp = await ctx.service.role.retrieve(role);
+    const isExist = temp.find(item => item.id !== id);
+    isExist && ctx.throw('角色已存在', 400);
+
+    // 3.更新
+    const res = await ctx.service.role.update(id, role);
+    res.affected ?
+      ctx.sendResult(null, 200, '更新成功') :
+      ctx.throw('参数不符, 请刷新重试', 400);
   }
 
   // 删除
@@ -41,7 +57,9 @@ export default class RoleController extends Controller {
     const { ctx } = this;
     let { id } = ctx.params;
     id = parseInt(id);
-    const res = await ctx.service.user.delete(id);
-    console.log(res);
+    const res = await ctx.service.role.delete(id);
+    res.affected ?
+      ctx.sendResult(null, 200, '删除权限成功') :
+      ctx.throw('参数不符, 请刷新重试', 400);
   }
 }

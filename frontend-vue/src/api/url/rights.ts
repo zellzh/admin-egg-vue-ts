@@ -1,13 +1,16 @@
+/*
+ * 权限列表 url 和 api
+ */
 import actions from "@/api/network";
 
-// users 接口
+// rights url
 const url = {
   rights: '/api/v1/rights',
   parentRights: '/api/v1/rights/parents'
 }
 
-// users 请求方法
-export const rightsAction = {
+// rights api
+export const rightsApi = {
   // 分页 | 查询所有
   getRights: (type?: string|object, data?: object) => {
     type = type || 'list'

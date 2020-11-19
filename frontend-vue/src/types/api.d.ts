@@ -25,4 +25,11 @@ export interface Api {
   addRights(data: object): AxiosResponse
   delRights(id: number): AxiosResponse
   updateRights(id: number, data: object): AxiosResponse
+
+  /* role
+    ================================ */
+  getRoles(data?: object): AxiosResponse
+  addRole(data: object): AxiosResponse
+  delRole(id: number): AxiosResponse
+  updateRole(id: number, data: object): AxiosResponse
 }

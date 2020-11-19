@@ -52,8 +52,8 @@ export default class User extends Service {
   // 添加
   public async create(rights: Partial<Rights>) {
     const { ctx } = this;
-    const res = ctx.repo.Rights.create(rights);
-    return ctx.repo.Rights.save(res);
+    rights = ctx.repo.Rights.create(rights);
+    return ctx.repo.Rights.save(rights);
   }
 
   // 删除
@@ -66,7 +66,7 @@ export default class User extends Service {
   public async update(id: number, updateInfo: Partial<Rights>) {
     const { ctx } = this;
     const {
-      pid = 0, rights_state = true,
+      pid, rights_state = true,
       rights_method, rights_path, rights_desc,
     } = updateInfo;
     return ctx.repo.Rights.update(id, {

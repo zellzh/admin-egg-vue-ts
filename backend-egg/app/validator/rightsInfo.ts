@@ -26,7 +26,7 @@ export default object.keys({
       then: string.required(),
     }),
   rights_name: string.trim().required(),
-  rights_type: string.trim().message('权限类型不能为空字符').required(),
+  rights_type: string.trim().required(),
   level: number.valid(0, 1, 2).required(),
   pid: number.required()
     .when('level', {

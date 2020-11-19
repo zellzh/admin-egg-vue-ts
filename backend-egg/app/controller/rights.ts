@@ -57,13 +57,13 @@ export default class RightsController extends Controller {
     // 2.查询权限是否重复
     const res = await ctx.service.rights.retrieve(rights);
     const temp = res.find(item => item.id !== id);
-    temp && ctx.throw('权限类名或路由重复!', 400, { details: temp });
+    temp && ctx.throw('权限类名或路由重复!', 400);
 
     // 3.更新
     const updateResult = await ctx.service.rights.update(id, rights);
     updateResult.affected ?
       ctx.sendResult(null, 200, '更新成功') :
-      ctx.throw('参数不符', 400, { details: rights });
+      ctx.throw('参数不符, 请刷新重试', 400);
   }
 
   // 删除
@@ -74,6 +74,6 @@ export default class RightsController extends Controller {
     const res = await ctx.service.rights.delete(id);
     res.affected ?
       ctx.sendResult(null, 200, '删除权限成功') :
-      ctx.throw('参数不符', 400, { details: id });
+      ctx.throw('参数不符, 请刷新重试', 400);
   }
 }
