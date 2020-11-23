@@ -8,7 +8,7 @@ export default class RoleController extends Controller {
   // 查询
   public async index() {
     const { ctx } = this;
-    const queryInfo = ctx.query;
+    const queryInfo = Object.keys(ctx.query).length ? ctx.query : '';
     const res = await ctx.service.role.retrieve(queryInfo);
     ctx.sendResult(res, 200, '获取成功');
   }
@@ -23,7 +23,7 @@ export default class RoleController extends Controller {
 
     // 2.查询角色是否存在
     const temp = await ctx.service.role.retrieve(role);
-    temp.length && ctx.throw('角色已存在', 400);
+    (<any[]>temp).length && ctx.throw('角色已存在', 400);
 
     // 3.添加角色
     const res = await ctx.service.role.create(role);
@@ -42,7 +42,7 @@ export default class RoleController extends Controller {
 
     // 2.查询角色是否重复
     const temp = await ctx.service.role.retrieve(role);
-    const isExist = temp.find(item => item.id !== id);
+    const isExist = (<any[]>temp).find(item => item.id !== id);
     isExist && ctx.throw('角色已存在', 400);
 
     // 3.更新

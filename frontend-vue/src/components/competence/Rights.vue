@@ -43,8 +43,10 @@
           style="width: 100%">
         <el-table-column type="index"/>
         <el-table-column
+            show-overflow-tooltip
+            :min-width="prop === 'handle'?4:3"
             v-for="(val, prop) in tableField"
-            :class-name="prop === 'handle'?'table-handle':''"
+            :class-name="prop === 'state'?'field-state':''"
             :key="val"
             :prop="prop"
             :label="val">
@@ -66,11 +68,11 @@
             <el-button size="mini"
                        type="primary"
                        @click="openEdit(scope.row)"
-                       icon="el-icon-edit"/>
+                       icon="el-icon-edit">编辑</el-button>
             <el-button size="mini"
                        type="danger"
                        @click.stop="showPop(scope.row.id,$event)"
-                       icon="el-icon-delete"/>
+                       icon="el-icon-delete">删除</el-button>
           </template>
         </el-table-column>
       </el-table>

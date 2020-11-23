@@ -32,7 +32,7 @@ export default class User extends Service {
         否则会生成空的 AND|OR 查询, 导致查询错误
      */
     role && console.log(role); // 待
-    const [ res, count ] = await ctx.repo.Manager.createQueryBuilder()
+    const [ res, count ] = await ctx.repo.Manager.createQueryBuilder('user')
       .where(key && new Brackets(qb => {
         qb.where('username LIKE :key', { key: `%${key}%` })
           .orWhere('email LIKE :key')
@@ -40,6 +40,10 @@ export default class User extends Service {
       }))
       .andWhere(type ? `${type} LIKE :key` : 'true')
       .andWhere(origin ? `${origin} = true` : 'true')
+      // 先通过关联关系查询到中间表
+      .leftJoinAndSelect('user.mgsRoles', 'rel')
+      // 再通过中间表的 role_id = role.id 条件将查询的结果映射到 user.roles
+      .leftJoinAndMapMany('user.roles', 'role', 'role', 'rel.role_id = role.id')
       .skip((offset - 1) * limit)
       .take(limit)
       .getManyAndCount();

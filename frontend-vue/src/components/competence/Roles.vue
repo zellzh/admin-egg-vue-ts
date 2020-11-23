@@ -18,6 +18,7 @@
           style="width: 100%">
         <el-table-column type="index"/>
         <el-table-column
+            :min-width="prop === 'handle'?4:3"
             v-for="(val, prop) in tableField"
             :key="val"
             :prop="prop"
@@ -102,7 +103,7 @@
 <script lang="ts">
 import {Component, Vue, Prop, Ref} from 'vue-property-decorator';
 import Breadcrumb from "@/components/common/Breadcrumb.vue";
-import {Form, Popover} from "element-ui";
+import {Form, Popover, TableColumn} from "element-ui";
 
 // popperJS 扩展 Popover, 方便自定义
 interface Pop extends Popover{
@@ -127,6 +128,7 @@ export default class Roles extends Vue {
     ====================================== */
   @Ref() readonly addRoleForm?: Form
   @Ref() readonly delPop!: Pop
+  @Ref() readonly tableColumn!: TableColumn
   @Prop() readonly naviPath!: any[]
 
   /*data

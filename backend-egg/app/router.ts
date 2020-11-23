@@ -19,4 +19,5 @@ export default (app: Application) => {
   require('./routes/rights')(app);
   router.resources('rights', '/api/v1/rights', controller.rights);
   router.resources('roles', '/api/v1/roles', controller.role);
+  router.resources('mgsRoles', '/api/v1/mgsRoles', controller.mgsRoles);
 };

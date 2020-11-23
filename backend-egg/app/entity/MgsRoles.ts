@@ -25,7 +25,7 @@ export default class MgsRoles {
   @JoinColumn({ // 关联 Manager 的外键
     name: 'mg_id',
   })
-  manager?: Manager;
+  manager: Manager;
   // 关联 Role
   @ManyToOne(() => Role, role => role.rolesMgs, {
     cascade: true,
@@ -34,10 +34,10 @@ export default class MgsRoles {
   @JoinColumn({ // 关联 Role 的外键
     name: 'role_id',
   })
-  role?: Role;
+  role: Role;
 
   @PrimaryGeneratedColumn()
-  id?: number;
+  id: number;
 
   @Column({
     comment: '关联的用户ID',
@@ -50,8 +50,8 @@ export default class MgsRoles {
   role_id: number;
 
   @CreateDateColumn({ comment: '添加时间' })
-  createdAt?: Date;
+  createdAt: Date;
 
   @UpdateDateColumn({ comment: '更新时间' })
-  updatedAt?: Date;
+  updatedAt: Date;
 }

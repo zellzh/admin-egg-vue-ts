@@ -5,10 +5,11 @@ export default class RoleService extends Service {
   // 查询
   public async retrieve(query: any) {
     const { ctx } = this;
-    const { offset, limit } = query;
+    if (!query) return ctx.repo.Role.find();
+    const { offset, limit, role_name } = query;
     if (query.hasOwnProperty('role_name')) {
       ctx.deleteEmpty(query);
-      return ctx.repo.Role.find({ role_name: query.role_name });
+      return ctx.repo.Role.find({ role_name });
     }
     const [ res, count ] = await ctx.repo.Role.findAndCount({
       skip: (offset - 1) * limit,

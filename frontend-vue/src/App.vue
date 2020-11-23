@@ -46,13 +46,14 @@ export default {
     }
 
     // 表格
-    .el-table .cell{
-      width: auto;
+    .el-table{
+      // 通过组件 min-width 属性控制
+      // 表格操作栏宽度
+      //.table-handle>.cell{
+      //  min-width: 180px;
+      //}
     }
-    // 表格操作栏宽度
-    .table-handle>.cell{
-      min-width: 180px;
-    }
+
   }
 
   // 删除提示 pop

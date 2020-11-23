@@ -38,7 +38,7 @@
           </el-row>
         </el-col>
         <el-col class="bar-right" :span="6">
-          <el-button type="primary" size="small" @click="addUserVisible = true">添加用户</el-button>
+          <el-button type="primary" size="small" @click="openAdd">添加用户</el-button>
           <el-upload
               class="excel-uploader"
               :action="excelPostUrl"
@@ -59,20 +59,21 @@
           style="width: 100%">
         <el-table-column type="index"/>
         <el-table-column
+            :min-width="prop === 'handle'?4:3"
             v-for="(val, prop) in tableField"
-            :class-name="prop === 'userHandle'?'table-handle':''"
             :key="prop"
             :prop="prop"
+            :formatter="prop === 'role' ? ownRoles : null"
             :label="val">
           <!-- 状态 -->
-          <template scope="scope" v-if="prop === 'userState'">
+          <template scope="scope" v-if="prop === 'state'">
             <el-switch
                 v-model="scope.row.state"
                 @change="switchUserState(scope.row)"
                 inactive-color="#ff4949"/>
           </template>
           <!-- 操作 -->
-          <template scope="scope" v-else-if="prop === 'userHandle'">
+          <template scope="scope" v-else-if="prop === 'handle'">
             <el-button size="mini"
                        @click="openEdit(scope.row)"
                        type="primary"
@@ -82,7 +83,7 @@
                        type="danger"
                        icon="el-icon-delete"/>
             <el-tooltip content="分配角色" :enterable="false" placement="top">
-              <el-button size="mini" type="warning" icon="el-icon-setting"/>
+              <el-button size="mini" @click="openAssign(scope.row)" type="warning" icon="el-icon-setting"/>
             </el-tooltip>
           </template>
           <!-- 其他 -->
@@ -102,8 +103,7 @@
         layout="total, sizes, prev, pager, next, jumper"
         :total="totalCount"/>
     <!-- 添加用户 -->
-    <el-dialog @open="addUserOnOpen"
-               title="添加用户" width="40%"
+    <el-dialog title="添加用户" width="40%"
                :visible.sync="addUserVisible">
       <el-form :model="addUserData"
                ref="addUserForm"
@@ -142,7 +142,6 @@
     </el-dialog>
     <!-- 编辑用户 -->
     <el-dialog title="编辑用户" width="40%"
-               @opened="editOpened"
                :visible.sync="editUserVisible">
       <el-form :model="editUserData"
                ref="editUserForm"
@@ -166,9 +165,7 @@
         <el-form-item label="用户名" prop="username">
           <el-input v-model="editUserData.username"
                     disabled
-                    clearable
-                    prefix-icon="iconfont icon-user"
-                    placeholder="请输入用户名"/>
+                    prefix-icon="iconfont icon-user"/>
         </el-form-item>
         <el-form-item label="邮箱" prop="email">
           <el-input v-model="editUserData.email"
@@ -184,6 +181,40 @@
       <div slot="footer" class="dialog-footer">
         <el-button @click="editUserVisible = false">取 消</el-button>
         <el-button type="primary" @click="onEditUser">确 定</el-button>
+      </div>
+    </el-dialog>
+    <!-- 分配角色 -->
+    <el-dialog title="编辑用户" width="40%"
+               :visible.sync="assignRolesVisible">
+      <el-form :model="assignData"
+               ref="assignForm"
+               label-width="auto"
+               size="medium">
+        <el-form-item label="当前用户">
+          <el-input v-model="assignData.user"
+                    disabled
+                    prefix-icon="iconfont icon-user"/>
+        </el-form-item>
+        <el-form-item label="拥有角色">
+          <el-input v-model="assignData.roles"
+                    disabled
+                    prefix-icon="iconfont icon-option"/>
+        </el-form-item>
+        <el-form-item label="分配角色" prop="assignId">
+          <el-select size="small"
+                     clearable
+                     v-model="assignData.assignId">
+            <el-option v-for="opt in allRoles"
+                       :key="opt.id"
+                       :label="opt.role_name"
+                       :value="opt.id"/>
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="assignRolesVisible = false">取 消</el-button>
+        <el-button type="danger" @click="onDelAssign">删 除</el-button>
+        <el-button type="primary" @click="onAssign">添 加</el-button>
       </div>
     </el-dialog>
     <!-- 删除用户 -->
@@ -245,9 +276,9 @@ export default class Users extends Vue {
     username: '用户名',
     email: '邮箱',
     phone: '用户名',
-    roleName: '角色',
-    userState: '状态',
-    userHandle: '操作',
+    role: '角色',
+    state: '状态',
+    handle: '操作',
   }
   // 表格数据
   tableData: any[] = []
@@ -401,7 +432,8 @@ export default class Users extends Vue {
     else cb()
   }
   // 添加用户打开事件
-  private addUserOnOpen() {
+  private openAdd() {
+    this.addUserVisible = true
     // 添加用户会改变表格, 等 dom 更新后再重置, 防止bug
     this.$nextTick(() => {
       // 重置表
@@ -414,13 +446,10 @@ export default class Users extends Vue {
   // 编辑用户打开
   private openEdit(data: any) {
     this.editUserVisible = true
-    // 复制数据, 防止修改时表格数据变动
-    this.editUserData = Object.assign({}, data)
-  }
-  // 编辑 dialog 打开后的回调
-  private editOpened() {
     // 编辑用户数据初始化
     this.isEditChange = false
+    // 复制数据, 防止修改时表格变动
+    this.editUserData = Object.assign({}, data)
   }
   // 编辑用户
   private async onEditUser() {
@@ -555,6 +584,73 @@ export default class Users extends Vue {
   private async handleCurrentChange() {
     await this.getUserList()
   }
+
+  // 获取所有角色
+  private async getAllRoles() {
+    const res  = await this.$api.getRoles()
+    if (res && res.status === 200) {
+      this.allRoles = res.data.data
+    }
+  }
+  allRoles: any[] = []
+  // 分配角色相关
+  @Ref() readonly assignForm?: Form
+  assignRolesVisible = false
+  // 拥有角色拼接
+  private ownRoles(row: any) {
+    if (!row.roles.length) return
+    const roles = row.roles.map((item: any) => item.role_name)
+    return roles.join('|')
+  }
+  curUser: any = {}
+  assignData = {
+    user: '',
+    roles: '',
+    assignId: null,
+  }
+  // 计算当前拥有角色
+  private get curRoles() {
+    // 重置为空
+    if (!Object.keys(this.curUser).length) return ''
+    return this.ownRoles(this.curUser)
+  }
+  // 打开 dialog
+  private async openAssign(row: any) {
+    // 重置
+    this.assignForm?.resetFields()
+    // 获取角色
+    if (!this.allRoles.length) await this.getAllRoles()
+    // 保存点击的数据
+    this.curUser = row
+    this.assignRolesVisible = true
+    // 处理分配表单数据
+    this.assignData.user = row.username || row.email || row.phone
+    this.assignData.roles = this.curRoles
+  }
+  // 删除分配
+  private async onDelAssign() {
+    const res = await this.$api.delUserRole(this.curUser.id as number, {
+      rid: this.assignData.assignId as unknown as number,
+    })
+    if (res && res.status === 200) {
+      await this.getUserList()
+      this.$message.success('删除分配成功')
+      this.assignRolesVisible = false
+    }
+  }
+  // 分配角色
+  private async onAssign() {
+    const res = await this.$api.addUserRole({
+      uid: this.curUser.id as number,
+      rid: this.assignData.assignId as unknown as number
+    })
+    if (res && res.status === 200) {
+      await this.getUserList()
+      this.$message.success('分配角色成功')
+      this.assignRolesVisible = false
+    }
+  }
+
 
   /*watch
     ====================================== */

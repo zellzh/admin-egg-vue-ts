@@ -32,4 +32,6 @@ export interface Api {
   addRole(data: object): AxiosResponse
   delRole(id: number): AxiosResponse
   updateRole(id: number, data: object): AxiosResponse
+  addUserRole(data: {uid: number, rid: number}): AxiosResponse
+  delUserRole(uid: number, data: {rid: number}): AxiosResponse
 }

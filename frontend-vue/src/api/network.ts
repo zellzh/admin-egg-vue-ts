@@ -1,6 +1,6 @@
 // axios 请求数据
 import axios, {AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse} from 'axios'
-import {baseUrl, refreshTokenApi} from './url'
+import {baseUrl, refreshTokenUrl } from './url'
 import Vue from "vue";
 
 const vue = Vue.prototype
@@ -9,8 +9,6 @@ axios.defaults.timeout = 10000
 axios.defaults.withCredentials = true // 开启携带 cookie
 // const source = axios.CancelToken.source() // 取消请求
 
-// 记录请求数
-let count = 0
 // URL 白名单
 const whiteUrl = [
   '/isExist'
@@ -23,7 +21,7 @@ axios.interceptors.request.use(
     config.headers.Authorization = localStorage.getItem('act');
 
     // 更新 token 的请求则携带 refresh_token
-    if (config.url?.startsWith(refreshTokenApi)) {
+    if (config.url?.startsWith(refreshTokenUrl)) {
       config.headers.Authorization = localStorage.getItem('rft');
     }
     return config
@@ -74,7 +72,7 @@ axios.interceptors.response.use(
 async function updateToken(response: AxiosResponse) {
   console.log('更新 token');
   // 请求 refresh 接口, 更新本地 token
-  const refreshRes = await GET(refreshTokenApi)
+  const refreshRes = await GET(refreshTokenUrl)
   if (!refreshRes) return
   localStorage.setItem('act', refreshRes.data.access_token)
 
@@ -97,7 +95,7 @@ function errHandle(e: AxiosError) {
 // 封装的 get 请求
 async function GET (url: string, params?: any, opts?: AxiosRequestConfig): Promise<any> {
   try {
-    return await axios.get(url, {params: params, ...opts})
+    return await axios.get(url, {params, ...opts})
   } catch (e) {
     errHandle(e)
   }
@@ -113,9 +111,9 @@ async function POST (url: string, params?: any, opts?: AxiosRequestConfig): Prom
 }
 
 // 封装的 delete 请求
-async function DEL (url: string, opts?: AxiosRequestConfig): Promise<any> {
+async function DEL (url: string, data?: object, opts?: AxiosRequestConfig): Promise<any> {
   try {
-    return await axios.delete(url, opts)
+    return await axios.delete(url, { data, ...opts })
   } catch (e) {
     errHandle(e)
   }

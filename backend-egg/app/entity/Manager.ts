@@ -13,9 +13,6 @@ import {
   OneToMany,
   // ManyToMany,
   // JoinTable,
-  // AfterInsert,
-  // AfterRemove,
-  // AfterUpdate,
 } from 'typeorm';
 import Oauth from './Oauth';
 import Role from './Role';
@@ -24,7 +21,7 @@ import MgsRoles from './MgsRoles';
 @Entity()
 export default class Manager {
   // 添加 toJSON 方法, 转为 JSON 时会自动执行, 过滤掉 密码/...  等敏感信息给前端
-  toJSON?() {
+  toJSON() {
     const hideKey = [ 'password', 'createdAt', 'updatedAt' ];
     const jsonKey = [ 'roles', 'oauth' ];
     this.baseUrl = 'http://127.0.0.1:7001'; // 设置后端地址
@@ -50,20 +47,14 @@ export default class Manager {
   // 中间表关联
   @OneToMany(() => MgsRoles, rel => rel.manager)
   mgsRoles: MgsRoles[];
-  // 映射
-  // @AfterRemove()
-  // @AfterUpdate()
-  // @AfterLoad()
-  // @AfterInsert()
-  // getRoles() {
-  //   if (this.mgsRoles && this.mgsRoles.length !== 0) {
-  //     this.roles = this.mgsRoles.map(rel => rel.role);
-  //   } else {
-  //     this.roles = [];
-  //   }
-  // }
 
-  roles: Role[];
+  /*
+   * 通过中间表查询和关联映射查询来实现 manyToOne+oneToMany 结构的映射
+   *  queryBuilder.leftJoinAndSelect(关联字段:'mgsRoles', 关联实体别名:'rel')
+   *  queryBuilder.leftJoinAndMapMany(映射属性:'roles', 源属性/实体:'role', 源实体别名:'role', 映射条件:'rel.role_id = role.id')
+   * 将关联表中的 role 映射到 roles 中
+   */
+  roles?: Role[];
 
   // ManyToMany 关联
   // @ManyToMany(() => Role, role => role.mgs)
