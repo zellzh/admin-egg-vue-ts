@@ -2,6 +2,7 @@ import svgCode from '../utils/svgCode';
 import emailCode from '../utils/emailCode';
 import smsCode from '../utils/smsCode';
 import bcrypt from '../utils/bcrypt';
+import Rights from '../entity/Rights';
 
 // 自定义 ctx.helper 方法
 module.exports = {
@@ -48,5 +49,16 @@ module.exports = {
   // 校验密码
   async compare(password: string, hash: string): Promise<boolean> {
     return bcrypt.compare(password, hash);
+  },
+
+  // 将权限数组转为 tree
+  getRightsTree(rights: Rights[]): Rights[] {
+    return rights.reduce((init: Rights[], cur: Rights) => {
+      if (cur.pid === 0) return init.concat(cur);
+      const fr = rights.find(item => item.id === cur.pid);
+      fr.children = fr.children || [];
+      fr.children.push(cur);
+      return init;
+    }, []);
   },
 };

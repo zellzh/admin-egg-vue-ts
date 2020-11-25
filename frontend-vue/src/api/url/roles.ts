@@ -6,7 +6,7 @@ import actions from "@/api/network";
 // role url
 const url = {
   role: '/api/v1/roles',
-  assignRole: '/api/v1/mgsRoles'
+  assignRights: '/api/v1/rolesRights'
 }
 
 // role api
@@ -17,8 +17,8 @@ export const roleApi = {
   delRole: (id: number) => actions.delete(url.role + `/${id}`),
   updateRole: (id: string, data: object) => actions.put(`${url.role}/${id}`, data),
   // 分配角色
-  addUserRole: (data: object) => actions.post(url.assignRole, data),
-  delUserRole: (uid: number, data: object) => actions.delete(`${url.assignRole}/${uid}`, data),
+  addRoleRights: (data: object) => actions.post(url.assignRights, data),
+  delRoleRights: (rid: number, data: object) => actions.delete(`${url.assignRights}/${rid}`, data),
 }
 
 export default url

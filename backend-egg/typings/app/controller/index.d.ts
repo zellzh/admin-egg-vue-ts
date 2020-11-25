@@ -8,6 +8,7 @@ import ExportManager from '../../../app/controller/manager';
 import ExportMgsRoles from '../../../app/controller/mgsRoles';
 import ExportRights from '../../../app/controller/rights';
 import ExportRole from '../../../app/controller/role';
+import ExportRolesRights from '../../../app/controller/rolesRights';
 import ExportUser from '../../../app/controller/user';
 import ExportUtils from '../../../app/controller/utils';
 
@@ -19,6 +20,7 @@ declare module 'egg' {
     mgsRoles: ExportMgsRoles;
     rights: ExportRights;
     role: ExportRole;
+    rolesRights: ExportRolesRights;
     user: ExportUser;
     utils: ExportUtils;
   }

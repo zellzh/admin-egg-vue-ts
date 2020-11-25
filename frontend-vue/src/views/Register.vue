@@ -185,7 +185,7 @@ export default class Register extends Vue {
 
 /*element 表单样式
   ====================================== */
-::v-deep .el-tabs {
+::v-deep.el-tabs {
   color: #aaa69d;
   .el-tabs__item{
     font-size: 1.17em;

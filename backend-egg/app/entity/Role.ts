@@ -40,7 +40,7 @@ import {
 } from 'typeorm';
 // ManyToMany 关联
 // import Manager from './Manager';
-// import Rights from './Rights';
+import Rights from './Rights';
 
 // 中间表关联
 import MgsRoles from './MgsRoles';
@@ -65,19 +65,10 @@ export default class Role {
   rolesMgs?: MgsRoles[];
   @OneToMany(() => RolesRights, rel => rel.role) // Role_Rights
   rolesRights?: RolesRights[];
-  // 映射
-  // @AfterRemove()
-  // @AfterUpdate()
-  // @AfterLoad()
-  // @AfterInsert()
-  // getRights() {
-  //   if (this.rolesRights && this.rolesRights.length !== 0) {
-  //     this.rights = this.rolesRights.map(rel => rel.rights);
-  //   } else {
-  //     this.rights = [];
-  //   }
-  // }
-  // rights?: Rights[];
+
+  // 权限映射
+  rights?: Rights[];
+  rightsTree?: any[];
 
   // ManyToMany 关联
   // @ManyToMany(() => Manager, mg => mg.roles) // 反向关联 Manager
@@ -91,7 +82,7 @@ export default class Role {
   // rights: Rights[];
 
   @PrimaryGeneratedColumn()
-  id?: number;
+  id: number;
 
   @Column({
     comment: '角色名称',
@@ -103,17 +94,17 @@ export default class Role {
     comment: '角色描述',
     nullable: true,
   })
-  role_desc?: string;
+  role_desc: string;
 
   @Column({
     comment: '角色是否可用',
     default: true,
   })
-  role_state?: boolean;
+  role_state: boolean;
 
   @CreateDateColumn({ comment: '添加时间' })
-  createdAt?: Date;
+  createdAt: Date;
 
   @UpdateDateColumn({ comment: '更新时间' })
-  updatedAt?: Date;
+  updatedAt: Date;
 }

@@ -5,15 +5,28 @@ export default class RoleService extends Service {
   // 查询
   public async retrieve(query: any) {
     const { ctx } = this;
+    // 查询全部
     if (!query) return ctx.repo.Role.find();
     const { offset, limit, role_name } = query;
+    // 条件查询
     if (query.hasOwnProperty('role_name')) {
       ctx.deleteEmpty(query);
       return ctx.repo.Role.find({ role_name });
     }
-    const [ res, count ] = await ctx.repo.Role.findAndCount({
-      skip: (offset - 1) * limit,
-      take: limit,
+    // 分页查询
+    const [ res, count ] = await ctx.repo.Role.createQueryBuilder('role')
+      // 根据关系查询到中间表
+      .leftJoinAndSelect('role.rolesRights', 'rel')
+      // 根据中间表映射权限
+      .leftJoinAndMapMany('role.rights', 'rights', 'rights', 'rel.rights_id = rights.id')
+      .skip((offset - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+    // 将拥有权限处理成 tree 并保存
+    res.forEach(role => {
+      // 默认 id 升序
+      const res = role.rights.sort((a, b) => a.id - b.id);
+      role.rightsTree = ctx.helper.getRightsTree(res);
     });
     return { role: res, count };
   }

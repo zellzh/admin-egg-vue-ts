@@ -334,7 +334,7 @@ export default class Login extends Vue {
 
 /*element 表单样式
   ====================================== */
-::v-deep .el-form {
+::v-deep.el-form {
   // 提交部分
   .login-submit {
     margin-bottom: 10px;

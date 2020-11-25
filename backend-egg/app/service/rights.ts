@@ -17,10 +17,11 @@ export default class User extends Service {
         ],
       });
     }
-    const res = ctx.repo.Rights.find();
-    // 树形查询
+    // 查询全部
+    const res = await ctx.repo.Rights.find();
+    // tree 结构
     if (param === 'tree') {
-      return res;
+      return ctx.helper.getRightsTree(res);
     }
     return res;
   }

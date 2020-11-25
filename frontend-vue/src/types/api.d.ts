@@ -17,6 +17,8 @@ export interface Api {
   delUser(id: number): AxiosResponse
   updateUser(id: number, data: object): AxiosResponse
   exportUsers(): AxiosResponse
+  addUserRole(data: {uid: number, rid: number}): AxiosResponse
+  delUserRole(uid: number, data: {rid: number}): AxiosResponse
 
   /* rights
     ================================ */
@@ -32,6 +34,6 @@ export interface Api {
   addRole(data: object): AxiosResponse
   delRole(id: number): AxiosResponse
   updateRole(id: number, data: object): AxiosResponse
-  addUserRole(data: {uid: number, rid: number}): AxiosResponse
-  delUserRole(uid: number, data: {rid: number}): AxiosResponse
+  addRoleRights(data: {role_id: number, rights_ids: number[]}): AxiosResponse
+  delRoleRights(role_id: number, data: {rights_ids: number[]}): AxiosResponse
 }

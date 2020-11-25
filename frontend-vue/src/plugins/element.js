@@ -4,7 +4,7 @@ import {
   Form, FormItem, Input, Checkbox, Select, Option,
   Table, TableColumn, Pagination, Upload,
   Switch, Tooltip, Dialog, MessageBox, Popover, Tag,
-  Tabs, TabPane,
+  Tabs, TabPane, Tree,
   Container, Header, Main, Aside, Row, Col,
   Menu, Submenu, MenuItem, Breadcrumb, BreadcrumbItem, Card,
 } from 'element-ui'
@@ -26,6 +26,7 @@ Vue.use(Option)
 
 Vue.use(Tabs)
 Vue.use(TabPane)
+Vue.use(Tree)
 
 Vue.use(Table)
 Vue.use(TableColumn)

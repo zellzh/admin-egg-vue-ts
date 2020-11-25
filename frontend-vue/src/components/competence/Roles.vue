@@ -16,9 +16,42 @@
           stripe
           border
           style="width: 100%">
+        <!-- 权限展示 -->
+        <el-table-column type="expand">
+          <template scope="scope">
+            <el-row type="flex" align="middle"
+                    :class="['bd-bottom', i1 === 0 && 'bd-top']"
+                    v-for="(row1, i1) in scope.row.rightsTree">
+              <!-- 顶级权限 -->
+              <el-col :span="6">
+                <el-tag type="danger">{{row1.rights_name}}</el-tag>
+                <i class="el-icon-caret-right"/>
+              </el-col>
+              <!-- 子级权限 -->
+              <el-col :span="18">
+                <!--二级权限 -->
+                <el-row type="flex" align="middle"
+                        :class="[i2 === 0 || 'bd-top']"
+                        v-for="(row2, i2) in row1.children">
+                  <el-col :span="6">
+                    <el-tag type="warning">{{row2.rights_name}}</el-tag>
+                    <i class="el-icon-caret-right"/>
+                  </el-col>
+                  <!-- 三级权限 -->
+                  <el-col :span="18">
+                    <el-tag v-for="row3 in row2.children"
+                            type="primary">{{row3.rights_name}}</el-tag>
+                  </el-col>
+                </el-row>
+              </el-col>
+            </el-row>
+          </template>
+        </el-table-column>
+        <!-- 索引列 -->
         <el-table-column type="index"/>
+        <!-- 定义列 -->
         <el-table-column
-            :min-width="prop === 'handle'?4:3"
+            :min-width="prop === 'handle'?5:3"
             v-for="(val, prop) in tableField"
             :key="val"
             :prop="prop"
@@ -42,6 +75,7 @@
                        icon="el-icon-delete">删除</el-button>
             <el-button size="mini"
                        type="warning"
+                       @click="openAssignRights(scope.row)"
                        icon="el-icon-setting">分配权限</el-button>
           </template>
         </el-table-column>
@@ -97,13 +131,28 @@
         <el-button type="primary" size="mini" @click="onDelRole">确定</el-button>
       </div>
     </el-popover>
+    <!-- 分配权限 -->
+    <el-dialog title="分配权限" width="40%"
+               :visible.sync="assignRightsVisible">
+      <el-tree :data="treeData"
+               ref="tree"
+               show-checkbox
+               default-expand-all
+               node-key="id"
+               :default-checked-keys="ownRights"
+               :props="treeProps"/>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="assignRightsVisible = false">取 消</el-button>
+        <el-button type="primary" @click="onAssignRights">确 定</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script lang="ts">
 import {Component, Vue, Prop, Ref} from 'vue-property-decorator';
 import Breadcrumb from "@/components/common/Breadcrumb.vue";
-import {Form, Popover, TableColumn} from "element-ui";
+import {Form, Popover, TableColumn, Tree} from "element-ui";
 
 // popperJS 扩展 Popover, 方便自定义
 interface Pop extends Popover{
@@ -171,6 +220,7 @@ export default class Roles extends Vue {
     const res = await this.$api.getRoles(this.queryInfo)
     if (res && res.status === 200) {
       const data = res.data.data
+      console.log(data);
       this.tableData = data.role;
       this.totalCount = data.count;
     }
@@ -278,16 +328,92 @@ export default class Roles extends Vue {
     await this.getRoleList()
   }
 
+  // 获取权限 tree
+  private async getRightsTree() {
+    const res = await this.$api.getRights('tree')
+    if (res && res.status === 200) {
+      this.treeData = res.data.data
+    }
+  }
+  // 分配权限相关
+  assignRightsVisible = false
+  // tree
+  @Ref() readonly tree?: Tree
+  treeData: any[] = []
+  treeProps = {
+    label: 'rights_name',
+    children: 'children',
+  }
+  // 已有权限
+  ownRights: any[] = []
+  // 打开 dialog
+  curRoleId: any = null
+  private openAssignRights(row: any) {
+    this.assignRightsVisible = true
+    this.curRoleId = row.id
+    // 重置为空, 再重新获取
+    this.ownRights = []
+    row.rights.forEach((item: any) => {
+      // 分配 dialog 中只能删除三级权限, 添加无限制
+      item.level === 2 && this.ownRights.push(item.id)
+    })
+    // 设置默认选中
+    this.tree?.setCheckedKeys(this.ownRights, true)
+  }
+  // 提交分配
+  private async onAssignRights() {
+    const ownIds = this.ownRights
+    // 1.获取所有权限 id
+    const totalIds = [...this.tree!.getHalfCheckedKeys(), ...this.tree!.getCheckedKeys()]
+    // 2.计算新增的 id
+    const addIds = totalIds.filter(id => {
+      return !ownIds.includes(id)
+    })
+    // 3.计算删除的 id
+    const delIds = ownIds.filter(id => {
+      return !totalIds.includes(id)
+    })
+    let addRes, delRes
+    if (addIds.length) {
+      addRes = await this.$api.addRoleRights({
+        role_id: this.curRoleId,
+        rights_ids: addIds,
+      })
+      addRes = addRes && addRes.status === 200
+    }
+    if (delIds.length) {
+      delRes = await this.$api.delRoleRights(this.curRoleId, {
+        rights_ids: delIds,
+      })
+      delRes = delRes && delRes.status === 200
+    }
+    (addRes || delRes) && this.$message.success('分配权限成功')
+    await this.getRoleList()
+    this.assignRightsVisible = false
+  }
+
   /*LC(life-cycle)
     ====================================== */
   async created() {
     await this.getRoleList()
+    await this.getRightsTree()
   }
 }
 </script>
 
 <style scoped lang="scss">
-::v-deep .role-container{
+::v-deep.role-container{
   position: relative;
+
+  // 权限展示
+  .el-tag{
+    margin: 10px;
+  }
+  .bd-top{
+    border-top: 1px solid #ccc;
+  }
+  .bd-bottom{
+    border-bottom: 1px solid #ccc;
+  }
 }
 </style>

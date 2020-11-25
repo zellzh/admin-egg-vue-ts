@@ -44,8 +44,11 @@ export default class Rights {
   // @ManyToMany(() => Role, role => role.rights) // 反向关联 Role
   // roles: Role[];
 
+  // 子权限
+  children?: Rights[];
+
   @PrimaryGeneratedColumn()
-  id?: number;
+  id: number;
 
   @Column({
     comment: '权限名称',

@@ -11,6 +11,7 @@ import ExportMgsRoles from '../../../app/service/mgsRoles';
 import ExportOauth from '../../../app/service/oauth';
 import ExportRights from '../../../app/service/rights';
 import ExportRole from '../../../app/service/role';
+import ExportRolesRights from '../../../app/service/rolesRights';
 import ExportTest from '../../../app/service/test';
 import ExportUser from '../../../app/service/user';
 
@@ -21,6 +22,7 @@ declare module 'egg' {
     oauth: AutoInstanceType<typeof ExportOauth>;
     rights: AutoInstanceType<typeof ExportRights>;
     role: AutoInstanceType<typeof ExportRole>;
+    rolesRights: AutoInstanceType<typeof ExportRolesRights>;
     test: AutoInstanceType<typeof ExportTest>;
     user: AutoInstanceType<typeof ExportUser>;
   }

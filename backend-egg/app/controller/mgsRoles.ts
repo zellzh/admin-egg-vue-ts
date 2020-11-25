@@ -8,13 +8,13 @@ export default class MgsRolesController extends Controller {
   public async create() {
     const { ctx } = this;
     const { uid, rid } = ctx.request.body;
-    if (typeof uid !== 'number' && typeof rid !== 'number') {
-      ctx.throw('参数必须是number', 422, { details: { uid, rid } });
+    if (typeof uid !== 'number' || typeof rid !== 'number') {
+      ctx.throw('参数必须是number', 422, { details: [ 'id 必须是 number' ] });
     }
 
     // 1.查询用户角色关系是否存在
     const temp = await ctx.service.mgsRoles.retrieve(uid, rid);
-    (<any[]>temp).length && ctx.throw('角色已存在', 400);
+    temp.length && ctx.throw('角色关系已存在', 400);
 
     // 2.添加用户角色关系
     const res = await ctx.service.mgsRoles.create(uid, rid);
