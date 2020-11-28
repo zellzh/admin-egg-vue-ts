@@ -1,7 +1,7 @@
 /*
  * 角色列表 url 和 api
  */
-import actions from "@/api/network";
+import actions, { all } from "@/api/network";
 
 // role url
 const url = {
@@ -19,6 +19,8 @@ export const roleApi = {
   // 分配角色
   addRoleRights: (data: object) => actions.post(url.assignRights, data),
   delRoleRights: (rid: number, data: object) => actions.delete(`${url.assignRights}/${rid}`, data),
+  // 注意点: 从 api 开始加载时, 拿不到 action, 只能在首个依赖 account 中获取
+  all
 }
 
 export default url

@@ -8,10 +8,9 @@ import {
   Container, Header, Main, Aside, Row, Col,
   Menu, Submenu, MenuItem, Breadcrumb, BreadcrumbItem, Card,
 } from 'element-ui'
-import Scrollbar from 'element-ui/lib/scrollbar'
 
 Vue.prototype.$message = Message // 消息提示方法绑定给Vue实例
-Vue.prototype.$messageBox = MessageBox // 弹框方法绑定给Vue实例
+Vue.prototype.$confirm = MessageBox.confirm // 弹框方法绑定给Vue实例
 
 Vue.use(Button)
 Vue.use(Icon)
@@ -52,5 +51,3 @@ Vue.use(MenuItem)
 Vue.use(Breadcrumb)
 Vue.use(BreadcrumbItem)
 Vue.use(Card)
-
-Vue.use(Scrollbar)

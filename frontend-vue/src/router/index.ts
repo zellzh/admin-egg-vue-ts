@@ -6,8 +6,10 @@ import Register from "@/views/Register.vue";
 import Admin from "@/views/Admin.vue";
 import Welcome from '@/components/Welcome.vue'
 import Users from "@/components/user/Users.vue";
-import Roles from "@/components/competence/Roles.vue";
 import Rights from "@/components/competence/Rights.vue";
+
+// 按需加载
+const Roles = () => import("@/components/competence/Roles.vue")
 
 Vue.use(VueRouter)
 

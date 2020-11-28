@@ -27,6 +27,8 @@ export const accountApi = {
   register: (data: object) => actions.post(url.register, data),
   login: (data: object) => actions.post(url.login, data),
   isLogin: (data: object) => actions.get(url.isLogin, data),
+  // 注意循环 import 的顺序, account 最先拿到 action, 在其他 api.js 中 action 拿不到
+  // all: actions.all
 }
 
 export default url

@@ -1,6 +1,6 @@
 // axios 请求数据
 import axios, {AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse} from 'axios'
-import {baseUrl, refreshTokenUrl } from './url'
+import {baseUrl, refreshTokenUrl} from './url'
 import Vue from "vue";
 
 const vue = Vue.prototype
@@ -40,12 +40,12 @@ axios.interceptors.response.use(
       vue.$message.error('可能网络问题, 服务器未响应')
       return
     }
+
     // 40010 - access_token 过期
     if (error.response.status === 401 && error.response.data.meta.status === 40010) {
       // 更新 access_token
       return updateToken(error.response)
     }
-
     // 40011 - refresh_token 过期
     if (error.response.status === 401 && error.response.data.meta.status === 40011) {
       vue.$messageBox.confirm(
@@ -128,13 +128,9 @@ async function PUT (url: string, params?: any, opts?: AxiosRequestConfig): Promi
   }
 }
 
-// 封装的 all 请求
-async function ALL (requests: AxiosInstance[]) {
-  try {
-    return await axios.all(requests)
-  } catch (e) {
-    errHandle(e)
-  }
+// 导出 all 函数, 防止循环依赖拿不到
+export async function all(reqs: AxiosInstance[]): Promise<AxiosInstance[]> {
+  return await axios.all(reqs)
 }
 
 export default {
@@ -142,5 +138,4 @@ export default {
   post: POST,
   put: PUT,
   delete: DEL,
-  all: ALL
 }

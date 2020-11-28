@@ -2,7 +2,7 @@ import { Service } from 'egg';
 import Role from '../entity/Role';
 
 export default class RoleService extends Service {
-  // 查询
+  // 查询全部
   public async retrieve(query: any) {
     const { ctx } = this;
     // 查询全部
@@ -29,6 +29,22 @@ export default class RoleService extends Service {
       role.rightsTree = ctx.helper.getRightsTree(res);
     });
     return { role: res, count };
+  }
+  // 查询指定角色
+  public async getRightsById(id: number) {
+    const { ctx } = this;
+    // 分页查询
+    const res = await ctx.repo.Role.createQueryBuilder('role')
+      .where({ id })
+      // 根据关系查询到中间表
+      .leftJoinAndSelect('role.rolesRights', 'rel')
+      // 根据中间表映射权限
+      .leftJoinAndMapMany('role.rights', 'rights', 'rights', 'rel.rights_id = rights.id')
+      .getOne();
+    // 默认 id 升序
+    const temp = res.rights.sort((a, b) => a.id - b.id);
+    res.rightsTree = ctx.helper.getRightsTree(temp);
+    return res;
   }
 
   // 添加

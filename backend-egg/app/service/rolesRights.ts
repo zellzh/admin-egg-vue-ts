@@ -2,8 +2,9 @@ import { Service } from 'egg';
 
 export default class RolesRightsService extends Service {
   // 查询
-  public async retrieve(role_id: number, rights_id: number) {
+  public async retrieve(role_id: number, rights_id?: number) {
     const { ctx } = this;
+    if (rights_id === undefined) return ctx.repo.RolesRights.find({ role_id });
     return ctx.repo.RolesRights.find({ role_id, rights_id });
   }
 

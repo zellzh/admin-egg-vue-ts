@@ -9,7 +9,7 @@
 
   "synchronize": false,
   "logging": false,
-  "timezone": "0800",
+  "timezone": "+08:00",
 
   "entitiesDir": "app/entity",
   "entities": ["app/entity/**/*.ts"],

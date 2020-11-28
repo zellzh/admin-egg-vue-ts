@@ -20,26 +20,35 @@
         <el-table-column type="expand">
           <template scope="scope">
             <el-row type="flex" align="middle"
+                    :key="row1.id"
                     :class="['bd-bottom', i1 === 0 && 'bd-top']"
                     v-for="(row1, i1) in scope.row.rightsTree">
               <!-- 顶级权限 -->
               <el-col :span="6">
-                <el-tag type="danger">{{row1.rights_name}}</el-tag>
+                <el-tag closable
+                        @close="delAssignRights(row1.id, scope.row)"
+                        type="danger">{{row1.rights_name}}</el-tag>
                 <i class="el-icon-caret-right"/>
               </el-col>
               <!-- 子级权限 -->
               <el-col :span="18">
-                <!--二级权限 -->
+                <!-- 二级权限 -->
                 <el-row type="flex" align="middle"
+                        :key="row2.id"
                         :class="[i2 === 0 || 'bd-top']"
                         v-for="(row2, i2) in row1.children">
                   <el-col :span="6">
-                    <el-tag type="warning">{{row2.rights_name}}</el-tag>
+                    <el-tag closable
+                            @close="delAssignRights(row2.id, scope.row)"
+                            type="warning">{{row2.rights_name}}</el-tag>
                     <i class="el-icon-caret-right"/>
                   </el-col>
                   <!-- 三级权限 -->
                   <el-col :span="18">
                     <el-tag v-for="row3 in row2.children"
+                            :key="row3.id"
+                            closable
+                            @close="delAssignRights(row3.id, scope.row)"
                             type="primary">{{row3.rights_name}}</el-tag>
                   </el-col>
                 </el-row>
@@ -137,6 +146,9 @@
       <el-tree :data="treeData"
                ref="tree"
                show-checkbox
+               check-strictly
+               @check="checkNode"
+               @node-click="clickNode"
                default-expand-all
                node-key="id"
                :default-checked-keys="ownRights"
@@ -235,7 +247,8 @@ export default class Roles extends Vue {
   // 表单验证
   private roleRules = {
     role_name: [
-      {required: true, message: '角色名称不能为空', trigger: 'blur', transform(value: string){return value && value.trim()}},
+      {required: true, message: '角色名称不能为空', trigger: 'blur',
+        transform(value: string){return value && value.trim()}},
     ],
     role_desc: [
       {transform(value: string) {return value && value.trim()}}
@@ -276,7 +289,6 @@ export default class Roles extends Vue {
         this.$message.error('请完善角色信息')
         return false
       }
-      console.log(this.roleData);
       const res = this.isEditRole ?
           await this.$api.updateRole(this.roleData.id, this.roleData) :
           await this.$api.addRole(this.roleData)
@@ -328,6 +340,8 @@ export default class Roles extends Vue {
     await this.getRoleList()
   }
 
+  // 分配权限相关
+  assignRightsVisible = false
   // 获取权限 tree
   private async getRightsTree() {
     const res = await this.$api.getRights('tree')
@@ -335,8 +349,6 @@ export default class Roles extends Vue {
       this.treeData = res.data.data
     }
   }
-  // 分配权限相关
-  assignRightsVisible = false
   // tree
   @Ref() readonly tree?: Tree
   treeData: any[] = []
@@ -344,52 +356,119 @@ export default class Roles extends Vue {
     label: 'rights_name',
     children: 'children',
   }
-  // 已有权限
   ownRights: any[] = []
-  // 打开 dialog
   curRoleId: any = null
+  // 打开 dialog
   private openAssignRights(row: any) {
     this.assignRightsVisible = true
     this.curRoleId = row.id
     // 重置为空, 再重新获取
-    this.ownRights = []
-    row.rights.forEach((item: any) => {
-      // 分配 dialog 中只能删除三级权限, 添加无限制
-      item.level === 2 && this.ownRights.push(item.id)
-    })
+    // this.ownRights = []
+    // row.rights.forEach((item: any) => {
+    //   // 分配 dialog 中只能删除三级权限, 添加无限制
+    //   item.level === 2 && this.ownRights.push(item.id)
+    // })
     // 设置默认选中
-    this.tree?.setCheckedKeys(this.ownRights, true)
+    // this.tree?.setCheckedKeys(this.ownRights, false)
+
+    // 优化后: 父子节点不关联
+    this.ownRights = row.rights.map((item: any) => item.id)
+    this.tree?.setCheckedKeys(this.ownRights)
   }
   // 提交分配
   private async onAssignRights() {
+    const reqArr = this.combineAssignReq()
+    const res = await this.$api.all(reqArr)
+    res.includes(undefined) || this.$message.success('分配权限成功')
+    await this.getRoleList()
+    this.assignRightsVisible = false
+  }
+  // 整合分配权限的请求
+  private combineAssignReq() {
     const ownIds = this.ownRights
+    const reqArr: any[] = []
     // 1.获取所有权限 id
     const totalIds = [...this.tree!.getHalfCheckedKeys(), ...this.tree!.getCheckedKeys()]
     // 2.计算新增的 id
-    const addIds = totalIds.filter(id => {
-      return !ownIds.includes(id)
-    })
-    // 3.计算删除的 id
-    const delIds = ownIds.filter(id => {
-      return !totalIds.includes(id)
-    })
-    let addRes, delRes
+    const addIds = totalIds.filter(id => !ownIds.includes(id))
     if (addIds.length) {
-      addRes = await this.$api.addRoleRights({
-        role_id: this.curRoleId,
-        rights_ids: addIds,
-      })
-      addRes = addRes && addRes.status === 200
+      reqArr.push(
+          this.$api.addRoleRights({
+            role_id: this.curRoleId,
+            rights_ids: addIds,
+          })
+      )
     }
-    if (delIds.length) {
-      delRes = await this.$api.delRoleRights(this.curRoleId, {
-        rights_ids: delIds,
-      })
-      delRes = delRes && delRes.status === 200
+    // 3.计算删除的 id
+    const delIds = ownIds.filter(id => !totalIds.includes(id))
+    if (addIds.length) {
+      reqArr.push(
+          this.$api.delRoleRights(this.curRoleId, {
+            rights_ids: delIds,
+          })
+      )
     }
-    (addRes || delRes) && this.$message.success('分配权限成功')
-    await this.getRoleList()
-    this.assignRightsVisible = false
+    return reqArr
+  }
+
+  // tag 删除
+  private delAssignRights(id: number, row: any) {
+    this.$confirm('此操作将删除该已有权限, 是否继续?', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning',
+    }).then(async () => {
+      const res = await this.$api.delRoleRights(row.id, {
+        rights_ids: [id]
+      })
+      if (res && res.status === 200) {
+        // 删除后接口返回最新权限, 防止页面刷新
+        row.rights = res.data.data.rights
+        row.rightsTree = res.data.data.rightsTree
+        this.$message.success('删除分配成功')
+      }
+    }).catch(() => {
+      this.$message({
+        type: 'info',
+        message: '已取消删除'
+      });
+    });
+
+  }
+  /*
+   * 优化:
+   *  - 父节点选中时, 子节点全选; 父节点不选时, 子节点全不选
+   *  - 子节点全不选时, 父节点不变
+   *  - 点击叶子节点选中
+   */
+  // 点击叶子节点选中
+  private clickNode(data: any, node: any) {
+    if (node.isLeaf) {
+      node.checked = !node.checked
+      this.checkNode(data)
+    }
+  }
+  // 选中当前节点
+  private checkNode(data: any) {
+    let node = this.tree!.getNode(data);
+    this.checkChildNodes(node);
+    this.checkParentNodes(node);
+  }
+  // 选中子节点
+  checkChildNodes(node: any){
+    if (!node.childNodes.length) return
+    for (const child of node.childNodes) {
+      child.checked = node.checked
+      this.checkChildNodes(child)
+    }
+  }
+  // 选中父节点
+  checkParentNodes(node: any){
+    const parentNode = node.parent
+    if (parentNode) {
+      parentNode.indeterminate = true;
+      this.checkParentNodes(parentNode)
+    }
   }
 
   /*LC(life-cycle)

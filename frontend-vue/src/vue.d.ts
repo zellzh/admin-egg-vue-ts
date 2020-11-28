@@ -6,7 +6,7 @@ import {ElMessageBox} from "element-ui/types/message-box";
 declare module 'vue/types/vue' {
   interface Vue { // 接口合并
     $message: ElMessage
-    $messageBox: ElMessageBox
+    $confirm: ElMessageBox
     $api: Api
   }
 }
