@@ -18,9 +18,18 @@ export default class ManagerService extends Service {
   public async retrieve(user: Partial<Manager>) {
     const { ctx } = this;
     const { username, phone, email } = user;
-    return ctx.repo.Manager.findOne({
-      // 数组就是 or 查询
-      where: [{ username }, { phone }, { email }],
-    });
+    const res = await ctx.repo.Manager.createQueryBuilder('user')
+      // 通过两张中间表查询到当前用户所有权限
+      .leftJoinAndSelect('mgs_roles', 'userRel', 'user.id = userRel.mg_id')
+      .leftJoinAndSelect('roles_rights', 'roleRel', 'userRel.role_id = roleRel.role_id')
+      .leftJoinAndMapMany('user.rights', 'rights', 'rights', 'rights.id = roleRel.rights_id')
+      .where([{ username }, { phone }, { email }])
+      .getOne();
+    // 默认 id 升序
+    if (res) {
+      const temp = res.rights.sort((a, b) => a.id - b.id);
+      res.rightsTree = ctx.helper.getRightsTree(temp);
+    }
+    return res;
   }
 }

@@ -24,6 +24,26 @@ export default class User extends Service {
       key, role, type, origin,
       limit = 5, offset = 1,
     } = userInfo;
+
+    /*
+     * 注意点:
+     *  - 条件查询中有关联表的字段, 所以条件查询需要在关联查询的结果中获取
+     *  - 如果直接查询, 无法查询到满足条件的所有关联角色
+     */
+    const conditionQuery = await ctx.repo.Manager.createQueryBuilder()
+      .select('user.id')
+      .from(Manager, 'user')
+      .leftJoin('mgs_roles', 'rel', 'rel.mg_id = user.id')
+      .leftJoin('role', 'role', 'rel.role_id = role.id')
+      .where(key && new Brackets(qb => {
+        qb.where('user.username LIKE :key')
+          .orWhere('user.email LIKE :key')
+          .orWhere('user.phone LIKE :key');
+      }))
+      .andWhere(type ? `${type} LIKE :key` : 'true')
+      .andWhere(origin ? `${origin} = true` : 'true')
+      .andWhere(role ? 'role.role_name = :role' : 'true');
+
     /*
     注意点:
       - where 查询默认是外层的 AND|OR 查询
@@ -31,19 +51,14 @@ export default class User extends Service {
       - 根据字段存在与否来使用条件查询时, 可以用三目运算符结合 true 来查询
         否则会生成空的 AND|OR 查询, 导致查询错误
      */
-    role && console.log(role); // 待
     const [ res, count ] = await ctx.repo.Manager.createQueryBuilder('user')
-      .where(key && new Brackets(qb => {
-        qb.where('username LIKE :key', { key: `%${key}%` })
-          .orWhere('email LIKE :key')
-          .orWhere('phone LIKE :key');
-      }))
-      .andWhere(type ? `${type} LIKE :key` : 'true')
-      .andWhere(origin ? `${origin} = true` : 'true')
       // 先通过关联关系查询到中间表
       .leftJoinAndSelect('user.mgsRoles', 'rel')
       // 再通过中间表的 role_id = role.id 条件将查询的结果映射到 user.roles
       .leftJoinAndMapMany('user.roles', 'role', 'role', 'rel.role_id = role.id')
+      .where('user.id IN (' + conditionQuery.getQuery() + ')')
+      .setParameters({ key: `%${key}%`, role })
+      .orderBy('user.id')
       .skip((offset - 1) * limit)
       .take(limit)
       .getManyAndCount();

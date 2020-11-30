@@ -7,22 +7,56 @@ const vue = Vue.prototype
 axios.defaults.baseURL = baseUrl
 axios.defaults.timeout = 10000
 axios.defaults.withCredentials = true // 开启携带 cookie
-// const source = axios.CancelToken.source() // 取消请求
+const source = axios.CancelToken.source() // 取消请求
 
-// URL 白名单
-const whiteUrl = [
-  '/isExist'
+// 请求白名单
+const actionWhite: any[] = [
+  '/isExist',
+  '/login',
+  '/register',
+  '/passport/github'
 ]
 
+// 获取用户请求权限
+function getActionUrl(): any[] {
+  const local = localStorage.getItem('userInfo')
+  if (!local) return []
+  const userInfo = JSON.parse(local)
+  return userInfo.rights.reduce((arr: any[], item: any) => {
+    return item.rights_type === 'action' ? arr.concat({
+      url: item.rights_path,
+      method: item.rights_method,
+    }) : arr
+  }, [])
+}
+// 问题: 必须刷新页面才能更新数据, vue 路由跳转不触发页面更新
+const actionUrls = getActionUrl()
 // 添加请求拦截器
 axios.interceptors.request.use(
   config => {
-    // 所有请求的 headers.Authorization 都携带 access_token
-    config.headers.Authorization = localStorage.getItem('act');
+    // 白名单判断
+    const isWhite = actionWhite.find(url => {
+      return config.url?.startsWith(url)
+    })
 
-    // 更新 token 的请求则携带 refresh_token
-    if (config.url?.startsWith(refreshTokenUrl)) {
-      config.headers.Authorization = localStorage.getItem('rft');
+    // 判断是否有请求权限
+    console.log(actionUrls);
+    const isRequest = actionUrls.find(item => {
+      return config.url?.startsWith(item.url) && config.method === item.method
+    })
+
+    // 不在白名单且无权限拦截, 否则下一步
+    if (isWhite === undefined && isRequest === undefined) {
+      config.cancelToken = source.token;
+      source.cancel('没有对应的请求权限');
+    } else {
+      // 所有请求的 headers.Authorization 都携带 access_token
+      config.headers.Authorization = localStorage.getItem('act');
+
+      // 更新 token 的请求则携带 refresh_token
+      if (config.url?.startsWith(refreshTokenUrl)) {
+        config.headers.Authorization = localStorage.getItem('rft');
+      }
     }
     return config
   },
@@ -36,10 +70,7 @@ axios.interceptors.response.use(
     return response
   },
    error => {
-    if (!error.response) {
-      vue.$message.error('可能网络问题, 服务器未响应')
-      return
-    }
+     if (!error.response) return vue.$message.error(error.message);
 
     // 40010 - access_token 过期
     if (error.response.status === 401 && error.response.data.meta.status === 40010) {
@@ -85,7 +116,6 @@ async function updateToken(response: AxiosResponse) {
 
 // 错误处理
 function errHandle(e: AxiosError) {
-  if (e.config.url && whiteUrl.includes(e.config.url)) return;
   const errData = e.response?.data
   errData && errData.meta ?
     vue.$message.error(errData.meta.msg) :

@@ -1,6 +1,7 @@
 <template>
   <div id="app">
-    <router-view/>
+    <!-- 加 key, 切换路由后更新数据, 防止复用组件导致数据不变, 引发权限等数据不变的 bug -->
+    <router-view v-if="isRouterAlive"/>
   </div>
 </template>
 
@@ -9,6 +10,25 @@ export default {
   name: 'app',
   components: {
 
+  },
+  provide() {
+    return {
+      reload: this.reload
+    }
+  },
+  data() {
+    return {
+      isRouterAlive: true
+    }
+  },
+  methods: {
+    // 通过对router-view的v-if属性赋值，重新加载路由
+    reload() {
+      this.isRouterAlive = false;
+      this.$nextTick(() => {
+        this.isRouterAlive = true;
+      })
+    }
   },
 }
 </script>

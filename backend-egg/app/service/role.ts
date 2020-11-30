@@ -19,6 +19,7 @@ export default class RoleService extends Service {
       .leftJoinAndSelect('role.rolesRights', 'rel')
       // 根据中间表映射权限
       .leftJoinAndMapMany('role.rights', 'rights', 'rights', 'rel.rights_id = rights.id')
+      .orderBy('role.id')
       .skip((offset - 1) * limit)
       .take(limit)
       .getManyAndCount();

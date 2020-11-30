@@ -16,7 +16,6 @@ Vue.use(VueRouter)
 const routes: Array<RouteConfig> = [
   {
     path: '/',
-    redirect: '/login',
   },
   {
     path: '/register',
@@ -48,7 +47,22 @@ const router = new VueRouter({
   routes
 })
 
+// 初始路由
+const initRouter: any[] = [
+  '/',
+  '/welcome'
+]
+// 获取用户路由权限
+function getRouterUrl(): string[] {
+  const local = localStorage.getItem('userInfo')
+  if (!local) return []
+  const userInfo = JSON.parse(local)
+  return userInfo.rights.reduce((arr: any[], item: any) => {
+    return item.rights_type === 'router' ? arr.concat(item.rights_path) : arr
+  }, initRouter)
+}
 // 导航守卫, 控制权限
+// 注意点: 前端代码面向用户, 都能被篡改, 仅作为体验优化处理; 真正权限控制都在后端实现
 router.beforeEach((to, from, next) => {
   // 注册和登录不需要控制
   if (to.path === '/register' || to.path === '/login') {
@@ -56,13 +70,28 @@ router.beforeEach((to, from, next) => {
   }
 
   // 其他界面需要有登录 token 才能访问
-  // 注意点: 防止 token 被篡改, 后端也需要权限控制
-  const token = localStorage.getItem('rft')
+  const token = localStorage.getItem('act')
+
+  // 首页跳转处理
+  if (to.path === '/') {
+    return token ?
+      next('/welcome') :
+      next('/login')
+  }
+
+  // 没有 token
   if (!token) {
-    Vue.prototype.$message.warning('无权限访问, 请登录后再尝试!')
+    Vue.prototype.$message.warning('请登录后再访问!')
     return next('/login')
   }
-  next() // 有 token 的其他 url 放行
+  // 有 token 时, 根据权限放行
+  const router = getRouterUrl()
+  if (router.includes(to.path)) {
+    next()
+  } else {
+    Vue.prototype.$message.error('无权限访问')
+    next('/welcome')
+  }
 })
 
 export default router

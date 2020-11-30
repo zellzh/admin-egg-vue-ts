@@ -3,8 +3,8 @@
   <el-breadcrumb separator-class="el-icon-arrow-right">
     <el-breadcrumb-item v-for="navi in naviPath"
                         :key="navi.id"
-                        :to="navi.path === $route.path || navi.path">
-      {{navi.menuName}}
+                        :to="navi.rights_path === $route.path || navi.rights_path">
+      {{navi.rights_name}}
     </el-breadcrumb-item>
   </el-breadcrumb>
 </template>

@@ -44,6 +44,7 @@ export default class User extends Service {
           .orWhere('rights_path LIKE :key');
       }))
       .andWhere(type ? 'rights_type = :type' : 'true', { type })
+      .orderBy('id')
       .skip((offset - 1) * limit)
       .take(limit)
       .getManyAndCount();

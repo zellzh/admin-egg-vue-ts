@@ -51,14 +51,18 @@ module.exports = {
     return bcrypt.compare(password, hash);
   },
 
-  // 将权限数组转为 tree
+  // 将权限数组转为 tree 数组
   getRightsTree(rights: Rights[]): Rights[] {
-    return rights.reduce((init: Rights[], cur: Rights) => {
-      if (cur.pid === 0) return init.concat(cur);
+    return rights.reduce((arr: Rights[], cur: Rights) => {
+      // 保存顶级权限
+      if (cur.pid === 0) return arr.concat(cur);
+      // 查找父级权限
       const fr = rights.find(item => item.id === cur.pid);
+      if (!fr) return arr;
+      // 添加子级权限
       fr.children = fr.children || [];
       fr.children.push(cur);
-      return init;
+      return arr;
     }, []);
   },
 };

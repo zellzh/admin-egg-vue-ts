@@ -132,11 +132,13 @@ export default class Login extends Vue {
       }
       let response = await this.$api.login(this.userInfo)
       if (response && response.status === 200) {
-        this.$message.success('登录成功');
         // 保存 token
         const data = response.data.data
         localStorage.setItem('act', data.access_token)
         localStorage.setItem('rft', data.refresh_token)
+        // 保存用户信息
+        localStorage.setItem('userInfo', JSON.stringify(data))
+        this.$message.success('登录成功');
         await this.$router.push('/admin');
       }
     })

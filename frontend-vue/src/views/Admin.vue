@@ -7,9 +7,9 @@
         <span>后台管理系统</span>
       </div>
       <div class="header-handle">
-        <img src="../assets/img/王道.png" alt="加载失败">
-        <span>你的名字</span>
-        <el-button size="small" type="info" @click="logout">退出</el-button>
+        <img :src="userInfo.baseUrl + userInfo.avatar" alt="加载失败">
+        <span>{{userInfo.username || userInfo.email || userInfo.phone}}</span>
+        <el-button size="small" type="warning" @click="logout">退出</el-button>
       </div>
     </el-header>
     <!-- container -->
@@ -34,23 +34,23 @@
             <i :class="elMenuOpts.isFold ? menuIcon.fold : menuIcon.unfold"/>
           </div>
           <!-- 一级菜单 -->
-          <el-submenu :index="item.id"
-                      v-for="item in userMenus"
+          <el-submenu :index="item.id.toString()"
+                      v-for="item in menuTree"
                       :key="item.id">
             <!-- 菜单模板 -->
             <template slot="title">
               <!-- 菜单图标 -->
-              <i :class="menuIcon[item.id]"></i>
+              <i :class="menuIcon[item.rights_name]"></i>
               <!-- 菜单文本 -->
-              <span>{{item.menuName}}</span>
+              <span>{{item.rights_name}}</span>
             </template>
             <!-- 二级菜单 -->
-            <el-menu-item :index="child1.path"
-                          v-for="child1 in item.children">
+            <el-menu-item :index="child.rights_path"
+                          v-for="child in item.children">
               <!-- 菜单图标 -->
               <i :class="menuIcon.sub"></i>
               <!-- 菜单文本 -->
-              <span>{{child1.menuName}}</span>
+              <span>{{child.rights_name}}</span>
             </el-menu-item>
           </el-submenu>
         </el-menu>
@@ -80,42 +80,35 @@ export default class Admin extends Vue {
     ====================================== */
   @Ref() readonly menuRef!: Menu
 
-
   /*data & computed
     ====================================== */
+  // 登录账户信息
+  userInfo = JSON.parse(localStorage.getItem('userInfo') || '')
   // 用户菜单列表
-  userMenus = [
-    {
-      id: '1',
-      menuName:'用户管理',
-      path: '',
-      pid: '0',
-      children:[
-        {id: '2',menuName:'用户列表',path: '/users', pid: '1'}
-      ]
-    },
-    {
-      id: '3',
-      menuName:'权限管理',
-      path: '',
-      pid: '0',
-      children:[
-        {id: '4',menuName:'角色列表',path: '/roles',pid: '3'},
-        {id: '5',menuName:'权限列表',path: '/rights', pid: '3'}
-      ]
-    },
-  ]
+  private get menuTree() {
+    return this.setMenuTree(this.userInfo.rightsTree)
+  }
+  // 菜单 tree 处理
+  private setMenuTree(rightsTree: any[]) {
+    if (!rightsTree) return []
+    rightsTree.forEach(item => {
+      if (item.level >= 1) {
+        delete item.children
+      } else {
+        this.setMenuTree(item.children)
+      }
+    })
+    return rightsTree
+  }
   // 菜单图标
   menuIcon = {
     fold: 'el-icon-s-unfold',
     unfold: 'el-icon-s-fold',
-    sub: 'el-icon-menu',
-    1: 'el-icon-setting',
-    3: 'el-icon-collection',
-    2: '',
-    4: '',
-    5: '',
-    6: '',
+    sub: 'el-icon-menu', // 子菜单
+    '用户管理': 'el-icon-setting',
+    '权限管理': 'el-icon-collection',
+    '商品订单': 'el-icon-s-goods',
+    '物流管理': 'el-icon-box',
   }
   // el-menu 配置
   elMenuOpts = {
@@ -126,20 +119,24 @@ export default class Admin extends Vue {
     tc: '#fff', // 文本色
     atc: '#ffd04b', // 选中色
   }
+
   // 获取面包屑导航路径
   private get naviPath() {
-    let temp: any[] = [{
+    // 初始导航
+    let naviArr: any[] = [{
       id: 0,
-      menuName: '首页',
-      path: '/welcome',
+      rights_name: '首页',
+      rights_path: '/welcome',
     }]
+    // 根据当前路径查找父级菜单权限
     const path = this.$route.path
     let subMenu: any = ''
-    const parentMenu = this.userMenus.find(menu => {
-      return subMenu = menu.children.find(item => item.path === path)
+    const parentMenu = this.menuTree.find((menu: any) => {
+      if (menu.hasOwnProperty('children'))
+        return subMenu = menu.children.find((item: any) => item.rights_path === path)
     })
-    subMenu && parentMenu && temp.push(parentMenu, subMenu)
-    return temp
+    subMenu && parentMenu && naviArr.push(parentMenu, subMenu)
+    return naviArr
   }
 
   /*method
@@ -151,11 +148,15 @@ export default class Admin extends Vue {
     this.$router.push('/welcome')
     this.elMenuOpts.activePath = ''
   }
+
   // 退出
   private logout() {
     localStorage.removeItem('rft')
+    localStorage.removeItem('act')
+    localStorage.removeItem('userInfo')
     this.$router.push('/login')
   }
+
   // 左侧菜单水平折叠
   private triggerCollapse() {
     this.elMenuOpts.isFold = !this.elMenuOpts.isFold
@@ -215,13 +216,13 @@ export default class Admin extends Vue {
         width: 40px;
         height: 40px;
         border-radius: 50%;
-        object-fit: cover;
+        object-fit: contain;
         box-shadow: 0 0 6px #fff;
         background: #fff;
       }
 
       span {
-        padding: 0 10px;
+        padding: 0 15px;
       }
     }
   }

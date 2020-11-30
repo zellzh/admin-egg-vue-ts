@@ -16,6 +16,7 @@ import {
 } from 'typeorm';
 import Oauth from './Oauth';
 import Role from './Role';
+import Rights from './Rights';
 import MgsRoles from './MgsRoles';
 
 @Entity()
@@ -38,7 +39,7 @@ export default class Manager {
     }
     return this;
   }
-  baseUrl: string;
+  baseUrl?: string;
 
   // 级联: ManyToMany 和 OneToMany 结合使用, 可以快捷查询中间表
   @OneToMany(() => Oauth, oauth => oauth.manager) // 一对多 Oauth
@@ -55,6 +56,8 @@ export default class Manager {
    * 将关联表中的 role 映射到 roles 中
    */
   roles?: Role[];
+  rights?: Rights[];
+  rightsTree?: Rights[];
 
   // ManyToMany 关联
   // @ManyToMany(() => Role, role => role.mgs)
