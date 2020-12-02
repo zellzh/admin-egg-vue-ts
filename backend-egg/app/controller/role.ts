@@ -19,11 +19,11 @@ export default class RoleController extends Controller {
     const role = ctx.request.body;
     // 1.验证数据
     const { error } = verifyRole.validate(role);
-    if (error) throw Object.assign(error, { status: 422 });
+    error && ctx.throw(422, '角色信息参数不符', { details: error.details });
 
     // 2.查询角色是否存在
     const temp = await ctx.service.role.retrieve(role);
-    (<any[]>temp).length && ctx.throw('角色已存在', 400);
+    (<any[]>temp).length && ctx.throw(400, '角色已存在');
 
     // 3.添加角色
     const res = await ctx.service.role.create(role);
@@ -38,18 +38,18 @@ export default class RoleController extends Controller {
     const role = ctx.request.body;
     // 1.验证数据
     const { error } = verifyRole.validate(role);
-    if (error) throw Object.assign(error, { status: 422 });
+    error && ctx.throw(422, '角色信息参数不符', { details: error.details });
 
     // 2.查询角色是否重复
     const temp = await ctx.service.role.retrieve(role);
     const isExist = (<any[]>temp).find(item => item.id !== id);
-    isExist && ctx.throw('角色已存在', 400);
+    isExist && ctx.throw(400, '角色已存在');
 
     // 3.更新
     const res = await ctx.service.role.update(id, role);
     res.affected ?
       ctx.sendResult(null, 200, '更新成功') :
-      ctx.throw('参数不符, 请刷新重试', 400);
+      ctx.throw(400, '参数不符, 请刷新重试');
   }
 
   // 删除
@@ -60,6 +60,6 @@ export default class RoleController extends Controller {
     const res = await ctx.service.role.delete(id);
     res.affected ?
       ctx.sendResult(null, 200, '删除权限成功') :
-      ctx.throw('参数不符, 请刷新重试', 400);
+      ctx.throw(400, '参数不符, 请刷新重试');
   }
 }

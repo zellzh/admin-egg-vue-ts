@@ -25,29 +25,21 @@ export default class UtilsController extends Controller {
     ctx.sendResult(sendInfo, 200, '发送短信成功');
   }
 
-  // 更新 token --- refresh_token
+  // 更新 access_token --- refresh_token
   public async refreshToken() {
     const { ctx } = this;
-    const token = ctx.get('authorization'); // refresh_token
+    // 根据 refresh_token 来刷新 access_token
+    const token = ctx.get('authorization');
     try {
-      const userData = ctx.jwt.verify(token, this.config.keys);
+      const data = ctx.jwt.verify(token, this.config.keys);
       // 删除时间, 提取用户数据
-      delete userData.iat;
-      delete userData.exp;
+      delete data.iat;
+      delete data.exp;
       // 重新生成 access_token
-      userData.access_token = ctx.jwt.sign(userData, this.config.keys, this.config.access_token);
-      ctx.sendResult(userData, 200, 'access_token 更新成功');
+      const access_token = ctx.jwt.sign(data, this.config.keys, this.config.access_token);
+      ctx.sendResult({ access_token }, 200, 'access_token 更新成功');
     } catch (e) {
-      switch (e.name) {
-        case 'TokenExpiredError':
-          ctx.status = 401;
-          ctx.sendResult(null, 40011, 'refresh_token 已过期, 请重新登录');
-          break;
-        default:
-          ctx.status = 401;
-          ctx.sendResult(null, 40000, '无效 token');
-          break;
-      }
+      ctx.throw(401, '登录过期, 请重新登录', { code: 40011 });
     }
   }
 

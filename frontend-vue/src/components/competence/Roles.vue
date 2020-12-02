@@ -232,7 +232,6 @@ export default class Roles extends Vue {
     const res = await this.$api.getRoles(this.queryInfo)
     if (res && res.status === 200) {
       const data = res.data.data
-      console.log(data);
       this.tableData = data.role;
       this.totalCount = data.count;
     }
@@ -428,12 +427,8 @@ export default class Roles extends Vue {
         this.$message.success('删除分配成功')
       }
     }).catch(() => {
-      this.$message({
-        type: 'info',
-        message: '已取消删除'
-      });
+      this.$message.info('已取消删除');
     });
-
   }
   /*
    * 优化:

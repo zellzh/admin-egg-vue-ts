@@ -79,13 +79,13 @@ export default class User extends Service {
     delete userInfo.username;
     avatar || delete userInfo.avatar;
     if (email) {
-      const res = await ctx.repo.Manager.findOne({ email });
+      const res = await ctx.repo.Manager.findOne({ email } as any);
       if (res && res.id !== id) return '邮箱已存在';
     } else {
       delete userInfo.email;
     }
     if (phone) {
-      const res = await ctx.repo.Manager.findOne({ phone });
+      const res = await ctx.repo.Manager.findOne({ phone } as any);
       if (res && res.id !== id) return '手机号已存在';
     } else {
       delete userInfo.phone;
@@ -95,6 +95,6 @@ export default class User extends Service {
       phone,
       avatar,
       state,
-    });
+    } as any);
   }
 }

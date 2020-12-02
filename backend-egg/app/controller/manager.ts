@@ -1,5 +1,4 @@
 import { Controller } from 'egg';
-import { pick } from 'lodash';
 
 export default class ManagerController extends Controller {
   // 查询用户
@@ -21,7 +20,7 @@ export default class ManagerController extends Controller {
 
     // 2.查询用户
     const dbUserinfo = await ctx.service.manager.retrieve(userinfo);
-    dbUserinfo && ctx.throw('用户已存在', 400, { details: dbUserinfo });
+    dbUserinfo && ctx.throw(400, '用户已存在');
 
     // 3.添加数据库
     await ctx.service.manager.create(userinfo);
@@ -39,7 +38,7 @@ export default class ManagerController extends Controller {
 
     // 2.查询用户
     const dbUserinfo = await ctx.service.manager.retrieve(userinfo);
-    dbUserinfo || ctx.throw('用户不存在', 400);
+    dbUserinfo || ctx.throw(400, '用户不存在');
 
     // 3.验证密码
     const res = await ctx.helper.compare(userinfo.password, dbUserinfo.password);
@@ -48,10 +47,14 @@ export default class ManagerController extends Controller {
       // ctx.session.user = dbUserinfo; // session 后端保存数据
 
       // 前端 token 保存数据
-      this.getToken(pick(dbUserinfo, [ 'id', 'username', 'email', 'phone' ]));
+      const { access_token, refresh_token } = this.getToken(ctx._.pick(dbUserinfo, [ 'id', 'username', 'email', 'phone' ]));
+      dbUserinfo.access_token = access_token;
+      dbUserinfo.refresh_token = refresh_token;
+      // 保存用户数据到 session
+      ctx.session.userInfo = dbUserinfo;
       ctx.sendResult(dbUserinfo, 200, '登录成功');
     } else { // false 则密码错误
-      ctx.throw('密码错误', 400, userinfo);
+      ctx.throw(400, '密码错误');
     }
   }
   // 生成登录 token
@@ -64,10 +67,10 @@ export default class ManagerController extends Controller {
     // dbUserinfo = Object.assign({}, dbUserinfo); // 将实体转为纯对象
 
     // 注意点: token 保存数据过多时, 前端发送 header 时会超限制导致报错
-    data.access_token = ctx.jwt.sign(data, this.config.keys, this.config.access_token);
+    const access_token = ctx.jwt.sign(data, this.config.keys, this.config.access_token);
 
     // 生成 refresh_token
-    data.refresh_token = ctx.jwt.sign(data, this.config.keys, this.config.refresh_token);
-    return data;
+    const refresh_token = ctx.jwt.sign(data, this.config.keys, this.config.refresh_token);
+    return { access_token, refresh_token };
   }
 }

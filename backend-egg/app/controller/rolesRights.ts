@@ -10,7 +10,7 @@ export default class RolesRightsController extends Controller {
     const { role_id, rights_ids = [] } = ctx.request.body;
     // 类型验证
     if (typeof role_id !== 'number' || !Array.isArray(rights_ids)) {
-      ctx.throw('添加权限失败: 参数类型错误', 422, {
+      ctx.throw(422, '添加权限失败: 参数类型错误', {
         details: [ 'role_id 必须是 number', 'rights_ids 必须是数组' ],
       });
     }

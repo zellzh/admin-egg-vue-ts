@@ -47,20 +47,6 @@ const router = new VueRouter({
   routes
 })
 
-// 初始路由
-const initRouter: any[] = [
-  '/',
-  '/welcome'
-]
-// 获取用户路由权限
-function getRouterUrl(): string[] {
-  const local = localStorage.getItem('userInfo')
-  if (!local) return []
-  const userInfo = JSON.parse(local)
-  return userInfo.rights.reduce((arr: any[], item: any) => {
-    return item.rights_type === 'router' ? arr.concat(item.rights_path) : arr
-  }, initRouter)
-}
 // 导航守卫, 控制权限
 // 注意点: 前端代码面向用户, 都能被篡改, 仅作为体验优化处理; 真正权限控制都在后端实现
 router.beforeEach((to, from, next) => {
@@ -84,13 +70,14 @@ router.beforeEach((to, from, next) => {
     Vue.prototype.$message.warning('请登录后再访问!')
     return next('/login')
   }
+
   // 有 token 时, 根据权限放行
-  const router = getRouterUrl()
-  if (router.includes(to.path)) {
+  const routerRights = JSON.parse(localStorage.getItem('routerRights') || '[]')
+  if (routerRights.includes(to.path)) {
     next()
   } else {
     Vue.prototype.$message.error('无权限访问')
-    next('/welcome')
+    next('/login')
   }
 })
 

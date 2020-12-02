@@ -2,6 +2,7 @@ import mime = require('mime-types');
 import jwt = require('jsonwebtoken');
 import { v4 as uuidv4 } from 'uuid';
 import xlsx from 'node-xlsx';
+import { pick } from 'lodash';
 
 // 自定义 ctx 方法
 module.exports = {
@@ -34,4 +35,8 @@ module.exports = {
   uuidv4,
   // node-xlsx
   xlsx,
+  // lodash
+  _: {
+    pick,
+  },
 };

@@ -21,15 +21,14 @@ export default (appInfo: EggAppInfo) => {
 
   // 注册全局中间件
   config.middleware = [
+    'errorHandler', // 先加载
     'authorize',
     'verify',
-    'errorHandler',
   ];
   // 鉴权中间件
   config.authorize = {
-    authUrls: [ // 鉴权路由
-      '/users',
-    ],
+    // 鉴权白名单
+    whiteUrls: [],
   };
   // 数据验证中间件
   config.verify = {
@@ -39,12 +38,12 @@ export default (appInfo: EggAppInfo) => {
     ],
   };
 
-  // jwt 配置
+  // jwt 配置: number 时间单位是秒; 字符串可提供单位, 无单位是毫秒
   config.access_token = {
-    expiresIn: '7d', // access_token 有效期
+    expiresIn: 30, // access_token 有效期
   };
   config.refresh_token = {
-    expiresIn: '7d', // refresh_token 有效期
+    expiresIn: 60, // refresh_token 有效期
   };
 
   // 密码加密

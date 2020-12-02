@@ -150,11 +150,13 @@ export default class Admin extends Vue {
   }
 
   // 退出
-  private logout() {
+  private async logout() {
     localStorage.removeItem('rft')
     localStorage.removeItem('act')
     localStorage.removeItem('userInfo')
-    this.$router.push('/login')
+    localStorage.removeItem('actionRights')
+    localStorage.removeItem('routerRights')
+    await this.$router.push('/login')
   }
 
   // 左侧菜单水平折叠

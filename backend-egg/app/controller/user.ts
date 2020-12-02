@@ -20,7 +20,7 @@ export default class UserController extends Controller {
     const userinfo = ctx.request.body;
     // 1.查询用户
     const queryInfo = await ctx.service.user.retrieve(userinfo);
-    typeof queryInfo === 'string' && ctx.throw(queryInfo, 400, { details: userinfo });
+    typeof queryInfo === 'string' && ctx.throw(400, queryInfo);
 
     // 2.添加数据库
     const user = await ctx.service.manager.create(userinfo);
@@ -34,7 +34,7 @@ export default class UserController extends Controller {
     const { ctx } = this;
     const { id } = ctx.params;
     const res = await ctx.service.user.delete(parseInt(id));
-    !res.affected && ctx.throw('参数不符', 400);
+    !res.affected && ctx.throw(400, '参数不符, 请刷新重试');
     ctx.sendResult(null, 200, '删除成功');
   }
 
@@ -45,7 +45,7 @@ export default class UserController extends Controller {
     const userInfo = ctx.request.body;
     const updateInfo = await ctx.service.user.update(parseInt(id), userInfo);
     updateInfo ?
-      ctx.throw(updateInfo, 400, { details: userInfo }) :
+      ctx.throw(400, updateInfo) :
       ctx.sendResult(null, 200, '更新成功');
   }
 

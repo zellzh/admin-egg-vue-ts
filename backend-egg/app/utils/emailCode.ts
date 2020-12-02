@@ -55,14 +55,14 @@ export default {
       code = serverCaptcha.code;
       expire = serverCaptcha.expire;
     } catch (error) {
-      ctx.throw('验证码失效', 400);
+      ctx.throw(400, '验证码失效');
     }
 
     if (Date.now() >= expire) { // 判断过期
       ctx.session.emailCode = null;
-      ctx.throw('验证码已过期', 400);
+      ctx.throw(400, '验证码已过期');
     } else if (clientCode.toLowerCase() !== code) { // 判断错误
-      ctx.throw('验证码错误', 400);
+      ctx.throw(400, '验证码错误');
     }
     ctx.session.emailCode = null; // 验证码一次性
   },

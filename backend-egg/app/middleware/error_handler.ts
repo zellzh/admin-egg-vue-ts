@@ -22,6 +22,9 @@ module.exports = () => {
       if (status === 422) {
         return ctx.sendResult(err.details, status, error);
       }
+      if (status === 401) {
+        return ctx.sendResult(null, status, error, err.code);
+      }
       ctx.sendResult(null, status, error);
     }
   };

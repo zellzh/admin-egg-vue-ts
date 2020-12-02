@@ -123,7 +123,7 @@ export default class Login extends Vue {
     }
   }
 
-  // 登录
+  // 登录请求
   private onSubmit() {
     this.verifyInfo()
     this.loginForm.validate(async valid => {
@@ -131,17 +131,45 @@ export default class Login extends Vue {
         return false
       }
       let response = await this.$api.login(this.userInfo)
-      if (response && response.status === 200) {
-        // 保存 token
-        const data = response.data.data
-        localStorage.setItem('act', data.access_token)
-        localStorage.setItem('rft', data.refresh_token)
-        // 保存用户信息
-        localStorage.setItem('userInfo', JSON.stringify(data))
+      if (response?.status === 200) {
+        // 保存相关用户数据
+        this.saveUserInfo(response.data.data)
         this.$message.success('登录成功');
         await this.$router.push('/admin');
       }
     })
+  }
+  // 保存用户数据
+  private saveUserInfo(data: any) {
+    // 保存 token
+    localStorage.setItem('act', data.access_token)
+    localStorage.setItem('rft', data.refresh_token)
+    localStorage.setItem('userInfo', JSON.stringify(data))
+    // 保存权限信息
+    this.saveRouterRights(data.rights)
+    this.saveActionRights(data.rights)
+  }
+  // 保存用户路由权限
+  private saveRouterRights(data: any) {
+    // 初始路由
+    const initRouter = [
+      '/',
+      '/welcome',
+    ]
+    const rights = data.reduce((arr: any[], item: any) => {
+      return item.rights_type === 'router' ? arr.concat(item.rights_path) : arr
+    }, initRouter)
+    localStorage.setItem('routerRights', JSON.stringify(rights))
+  }
+  // 保存用户请求权限
+  private saveActionRights(data: any) {
+    const rights = data.reduce((arr: any[], item: any) => {
+      return item.rights_type === 'action' ? arr.concat({
+        url: item.rights_path,
+        method: item.rights_method,
+      }) : arr
+    }, [])
+    localStorage.setItem('actionRights', JSON.stringify(rights))
   }
 
   // 第三方登录

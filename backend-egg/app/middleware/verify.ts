@@ -13,8 +13,7 @@ export default opts => {
       await userInfoSchema.validateAsync(body, { convert: true });
       await next();
     } catch (e) {
-      ctx.logger.error(e);
-      ctx.sendResult(null, 400, e.message);
+      ctx.throw(422, '用户信息参数不符', { details: e.details });
     }
   };
 };
