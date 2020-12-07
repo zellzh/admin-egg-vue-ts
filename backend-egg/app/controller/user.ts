@@ -4,6 +4,7 @@
 import { Controller } from 'egg';
 import fs from 'fs';
 import path from 'path';
+import verifyRole from '../validator/userInfo';
 
 export default class UserController extends Controller {
   // 获取用户
@@ -18,6 +19,10 @@ export default class UserController extends Controller {
   public async addUser() {
     const { ctx } = this;
     const userinfo = ctx.request.body;
+    // 0.验证数据
+    const { error } = verifyRole.validate(userinfo);
+    error && ctx.throw(422, '角色信息参数不符', { details: error.details });
+
     // 1.查询用户
     const queryInfo = await ctx.service.user.retrieve(userinfo);
     typeof queryInfo === 'string' && ctx.throw(400, queryInfo);
@@ -25,6 +30,7 @@ export default class UserController extends Controller {
     // 2.添加数据库
     const user = await ctx.service.manager.create(userinfo);
     // 3.绑定默认角色: 普通用户
+    await ctx.service.mgsRoles.create(user.id, this.config.defaultRids.ordinary);
 
     ctx.sendResult(user, 200, '添加成功');
   }

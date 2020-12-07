@@ -1,7 +1,7 @@
 <template>
   <div class="users-container">
     <!-- 面包屑 -->
-    <Breadcrumb :navi-path="naviPath"/>
+    <Breadcrumb :navi-path="naviPath" @go-home="goHome"/>
     <!-- 卡片区域 -->
     <el-card shadow="always">
       <!-- 搜索区域 -->
@@ -69,7 +69,7 @@
           <template scope="scope" v-if="prop === 'state'">
             <el-switch
                 v-model="scope.row.state"
-                @change="switchUserState(scope.row)"
+                @change="switchUserState(scope.row.state, scope.row)"
                 inactive-color="#ff4949"/>
           </template>
           <!-- 操作 -->
@@ -267,7 +267,11 @@ export default class Users extends Vue {
   @Ref() readonly editUserForm?: Form;
   @Ref() readonly pwdInput?: Input & { [prop: string]: any};
   @Ref() readonly delPop!: Pop;
+  // 面包屑通信
   @Prop() readonly naviPath!: any[]
+  private goHome() {
+    this.$emit('go-home')
+  }
 
   /*data
     ====================================== */
@@ -467,11 +471,15 @@ export default class Users extends Vue {
     }
   }
   // 切换状态
-  private async switchUserState(row: any) {
+  private async switchUserState(value: boolean, row: any) {
     const { id, ...user } = row
     const res = await this.$api.updateUser(id, user)
     if (res && res.status === 200) {
       this.$message.success('更新状态成功!')
+    } else {
+      setTimeout(() => {
+        row.state = !value;
+      }, 200)
     }
   }
   // 头像上传前的回调
@@ -650,7 +658,6 @@ export default class Users extends Vue {
       this.assignRolesVisible = false
     }
   }
-
 
   /*watch
     ====================================== */

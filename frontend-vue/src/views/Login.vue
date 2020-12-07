@@ -2,7 +2,7 @@
   <div class="login-container" ref="container">
     <!-- 信息 -->
     <div class="register-info">
-      <p>缥缈峰修仙服务平台</p>
+      <p>普通的修仙平台</p>
       <h1>后台管理系统</h1>
     </div>
     <!-- 内容 -->
@@ -145,49 +145,46 @@ export default class Login extends Vue {
     localStorage.setItem('act', data.access_token)
     localStorage.setItem('rft', data.refresh_token)
     localStorage.setItem('userInfo', JSON.stringify(data))
-    // 保存权限信息
-    this.saveRouterRights(data.rights)
-    this.saveActionRights(data.rights)
+    // 分配保存权限信息
+    this.saveDispatchRights(data.rights)
   }
-  // 保存用户路由权限
-  private saveRouterRights(data: any) {
-    // 初始路由
-    const initRouter = [
+  // 分配保存权限信息
+  private saveDispatchRights(data: any) {
+    // 保存用户路由权限
+    const initRouter = [ // 初始路由权限
       '/',
       '/welcome',
     ]
-    const rights = data.reduce((arr: any[], item: any) => {
+    const routerRights = data.reduce((arr: any[], item: any) => {
       return item.rights_type === 'router' ? arr.concat(item.rights_path) : arr
     }, initRouter)
-    localStorage.setItem('routerRights', JSON.stringify(rights))
-  }
-  // 保存用户请求权限
-  private saveActionRights(data: any) {
-    const rights = data.reduce((arr: any[], item: any) => {
+    localStorage.setItem('routerRights', JSON.stringify(routerRights))
+
+    // 保存用户请求权限
+    const actionRights = data.reduce((arr: any[], item: any) => {
       return item.rights_type === 'action' ? arr.concat({
         url: item.rights_path,
         method: item.rights_method,
       }) : arr
     }, [])
-    localStorage.setItem('actionRights', JSON.stringify(rights))
+    localStorage.setItem('actionRights', JSON.stringify(actionRights))
   }
 
   // 第三方登录
-  private go2Github() {
+  private async go2Github() {
     const subWin = this.openNewWindow();
+    if (!subWin) return
     // subWin.document.title = 'Github登录'
-    // 监听打开窗口的数据
-    addEventListener('message', async ev => {
+    // 监听打开窗口的数据, 使用 addEven 时注意解绑事件
+    onmessage = async ev => {
       // 是后台 api 传来的数据时, 保存 token
-      if (ev.origin + '/' === baseUrl) {
-        const { access_token, refresh_token } = ev.data
-        localStorage.setItem('act', access_token)
-        localStorage.setItem('rft', refresh_token)
+      if (ev.origin === baseUrl) {
+        // 保存数据
+        this.saveUserInfo(ev.data)
         this.$message.success('登录成功');
-        // 跳转到 admin
         await this.$router.push('/admin')
       }
-    })
+    }
   }
   // 打开新页面并发送第三方请求
   private openNewWindow() {

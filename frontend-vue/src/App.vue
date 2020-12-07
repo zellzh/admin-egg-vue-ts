@@ -1,6 +1,7 @@
 <template>
   <div id="app">
-    <!-- 加 key (测试无效): 切换路由后更新数据, 防止复用组件导致数据不变, 引发权限等数据不变的 bug -->
+    <!-- 加 key: 切换路由后更新数据, 防止复用组件导致数据不变, 引发权限等数据不变的 bug -->
+    <!-- 但是会导致同一页面的菜单选项闪烁更新, 使用 storage|vuex 保存数据 -->
     <router-view/>
   </div>
 </template>
@@ -18,6 +19,7 @@ export default {
 #app{
   width: 100%;
   height: 100%;
+  min-width: 1366px;
 
   // 将 html 的滚动条变为容器内部的, 防止压缩页面
   // 同时解决弹窗(dialog...)抖动问题

@@ -40,8 +40,8 @@ export default class User extends Service {
           .orWhere('user.email LIKE :key')
           .orWhere('user.phone LIKE :key');
       }))
-      .andWhere(type ? `${type} LIKE :key` : 'true')
-      .andWhere(origin ? `${origin} = true` : 'true')
+      .andWhere(type ? `user.${type} LIKE :key` : 'true')
+      .andWhere(origin ? `user.${origin} = true` : 'true')
       .andWhere(role ? 'role.role_name = :role' : 'true');
 
     /*

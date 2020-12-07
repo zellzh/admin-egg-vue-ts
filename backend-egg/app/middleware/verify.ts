@@ -6,6 +6,7 @@ import userInfoSchema from '../validator/userInfo';
 export default opts => {
   return async (ctx, next) => {
     const body = ctx.request.body;
+    console.log(body);
     const curUrl = ctx.url;
     if (!opts.userUrls.includes(curUrl) || ctx.method !== 'POST') return await next();
     try {

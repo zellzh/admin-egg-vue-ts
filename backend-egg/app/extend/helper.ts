@@ -38,7 +38,7 @@ module.exports = {
         smsCode.verify(ctx, clientCode); // 短信验证码
         break;
       default:
-        ctx.throw('无效的注册类型', 400);
+        ctx.throw(400, '无效的注册类型');
     }
   },
 

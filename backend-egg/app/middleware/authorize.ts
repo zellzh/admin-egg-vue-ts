@@ -5,7 +5,6 @@
 export default (_opts, app) => {
   return async (ctx, next) => {
     const curUrl = ctx.url;
-    console.log('-------------------------', curUrl);
     const method = ctx.request.method.toLowerCase();
     // 判断当前 url 是否是白名单
     // const whiteUrls = opts.whiteUrls || [];

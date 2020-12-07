@@ -1,4 +1,6 @@
 import { EggAppConfig, EggAppInfo, PowerPartial } from 'egg';
+import orm from '../ormconfig.json';
+import { MysqlConnectionOptions } from 'typeorm/driver/mysql/MysqlConnectionOptions';
 
 export default (appInfo: EggAppInfo) => {
   const config = {} as PowerPartial<EggAppConfig>;
@@ -23,27 +25,24 @@ export default (appInfo: EggAppInfo) => {
   config.middleware = [
     'errorHandler', // 先加载
     'authorize',
-    'verify',
   ];
   // 鉴权中间件
   config.authorize = {
     // 鉴权白名单
     whiteUrls: [],
   };
-  // 数据验证中间件
-  config.verify = {
-    userUrls: [
-      '/register',
-      '/api/v1/users',
-    ],
+  // 默认权限 id
+  config.defaultRids = {
+    ordinary: 7,
+    manager: 0,
   };
 
-  // jwt 配置: number 时间单位是秒; 字符串可提供单位, 无单位是毫秒
+  // jwt 配置
   config.access_token = {
-    expiresIn: 30, // access_token 有效期
+    expiresIn: 120, // number 时间单位是秒
   };
   config.refresh_token = {
-    expiresIn: 60, // refresh_token 有效期
+    expiresIn: '15d', // string 可提供单位, 无单位是毫秒
   };
 
   // 密码加密
@@ -53,11 +52,15 @@ export default (appInfo: EggAppInfo) => {
 
   // 安全
   config.security = {
+    csrf: {
+      // 本地关闭 csrf
+      ignore: ctx => ctx.ip === '127.0.0.1' || ctx.hostname === 'localhost',
+    },
     // 访问白名单: 如果为空, 则对所有请求放行(*), 注意也可用于跨域插件 egg-cors
+    // 注意, 前后端 localhost | 127.0.0.1 | 192.168.x.x 必须一致
     domainWhiteList: [
       'http://127.0.0.1:8080',
-      'http://192.168.1.6:8080',
-      'http://localhost:8080', // 注意, 前后端 localhost / 127.0.0.1 / 192.168.x.x 必须一致
+      'http://localhost:8080',
       '*',
     ],
   };
@@ -65,7 +68,7 @@ export default (appInfo: EggAppInfo) => {
   // 跨域: 基于 security, 未设置 origin 时, 则使用白名单, 否则覆盖
   config.cors = {
     // origin: '127.0.0.1:8080', // 使用 * 时, 不能携带 cookie
-    allowMethods: 'GET,HEAD,PUT,POST,DELETE,PATCH',
+    allowMethods: 'GET,HEAD,PUT,POST,DELETE,OPTIONS',
     credentials: true,
   };
 
@@ -73,7 +76,57 @@ export default (appInfo: EggAppInfo) => {
   config.view = {
     // mapping: { '.html': 'ejs' },
     defaultExtension: '.ejs',
-    defaultViewEngine: 'ejs', // 只有一个模板时配置后, 可以省略 render 后缀和 mapping
+    defaultViewEngine: 'ejs', // 只有一个模板引擎时, 可以省略 render 后缀和 mapping
+  };
+
+  // 数据库 orm
+  config.typeorm = {
+    client: orm as MysqlConnectionOptions,
+  };
+  // redis
+  config.redis = {
+    client: {
+      host: '127.0.0.1',
+      port: 6379,
+      password: null,
+      db: 0,
+    },
+  };
+
+  // svg-captcha
+  config.captcha = {
+    size: 4, // 验证码长度
+    width: 96, // 验证码图片宽度
+    height: 32, // 验证码图片高度
+    fontSize: 40, // 验证码文字大小
+    ignoreChars: '0oO1ilI', // 验证码字符中排除内容 0o1i
+    noise: 3, // 干扰线条的数量
+    color: false, // 验证码的字符是否有颜色，默认没有，如果设定了背景，则默认有
+    // background: '#ddd', // 验证码图片背景颜色
+  };
+
+  // 邮箱相关配置
+  config.smtp = {
+    host: 'smtp.qq.com',
+    port: 465,
+    user: 'xxx', // 发送邮件的邮箱
+    pass: 'xxx', // 邮箱对应的授权码
+  };
+  // 阿里SMS相关配置
+  config.sms = {
+    accessKeyId: 'xxx',
+    accessKeySecret: 'xxx',
+    sendInfo: {
+      SignName: 'xxx',
+      TemplateCode: 'xxx',
+      TemplateParam: (captcha: string) => JSON.stringify({ code: captcha }),
+    },
+  };
+
+  // passport --- 第三方登录
+  config.passportGithub = {
+    key: 'your_clientID',
+    secret: 'your_clientSecret',
   };
 
   // add your special config in here

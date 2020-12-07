@@ -8,7 +8,8 @@ export default class Oauth extends Service {
       where: {
         uid: id,
       },
-      relations: [ 'manager' ], // 关联字段查询, 只用于简单的左连接查询
+      // 关联字段查询
+      relations: [ 'manager' ],
     });
   }
 

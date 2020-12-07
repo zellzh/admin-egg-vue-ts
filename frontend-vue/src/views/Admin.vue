@@ -22,7 +22,7 @@
             class="aside-menu"
             unique-opened
             router
-            :default-active="elMenuOpts.activePath"
+            :default-active="activePath"
             :collapse-transition="elMenuOpts.isAni"
             :collapse="elMenuOpts.isFold"
             :background-color="elMenuOpts.bgc"
@@ -34,7 +34,7 @@
             <i :class="elMenuOpts.isFold ? menuIcon.fold : menuIcon.unfold"/>
           </div>
           <!-- 一级菜单 -->
-          <el-submenu :index="item.id.toString()"
+          <el-submenu :index="`${item.id}`"
                       v-for="item in menuTree"
                       :key="item.id">
             <!-- 菜单模板 -->
@@ -57,7 +57,7 @@
       </el-aside>
       <!-- main -->
       <el-main>
-        <router-view :navi-path="naviPath"/>
+        <router-view :navi-path="naviChain" @go-home="goHome"/>
       </el-main>
     </el-container>
   </el-container>
@@ -114,29 +114,41 @@ export default class Admin extends Vue {
   elMenuOpts = {
     isFold: false, // 是否折叠
     isAni: true, // 是否开启折叠动画
-    activePath: this.$route.path, // 默认选中菜单
     bgc: '#333444', // 背景色
     tc: '#fff', // 文本色
     atc: '#ffd04b', // 选中色
   }
+  // 默认选中菜单
+  get activePath() {
+    return this.$route.path
+  }
 
-  // 获取面包屑导航路径
-  private get naviPath() {
+  // 获取面包屑导航链
+  private get naviChain() {
     // 初始导航
     let naviArr: any[] = [{
       id: 0,
       rights_name: '首页',
       rights_path: '/welcome',
     }]
-    // 根据当前路径查找父级菜单权限
-    const path = this.$route.path
-    let subMenu: any = ''
-    const parentMenu = this.menuTree.find((menu: any) => {
-      if (menu.hasOwnProperty('children'))
-        return subMenu = menu.children.find((item: any) => item.rights_path === path)
-    })
-    subMenu && parentMenu && naviArr.push(parentMenu, subMenu)
-    return naviArr
+    // 父权限链
+    return this.getParentChainArr(this.userInfo.rightsTree, naviArr)
+  }
+  // 获取父权限链
+  private getParentChainArr(data: any[], chainArr: any[]) {
+    for (const rights of data) {
+      if (rights.rights_path === this.$route.path) {
+        chainArr.splice(1, 0, rights)
+        return chainArr
+      }
+      if (rights.children) {
+        const chain: any = this.getParentChainArr(rights.children, chainArr);
+        if (chain !== undefined) {
+          chain.splice(1, 0, rights)
+          return chain;
+        }
+      }
+    }
   }
 
   /*method
@@ -144,9 +156,8 @@ export default class Admin extends Vue {
   // logo 点击
   private goHome() {
     if (this.$route.path === '/welcome') return // 防止重复路由跳转
-    this.menuRef.close('1') // 收起父菜单
+    this.menuRef.close(this.naviChain.slice(-2)[0].id + '') // 收起父菜单
     this.$router.push('/welcome')
-    this.elMenuOpts.activePath = ''
   }
 
   // 退出
@@ -166,17 +177,6 @@ export default class Admin extends Vue {
 
   /*LC(life-cycle)
     ====================================== */
-  // 组件内使用导航守卫: before 防止鉴权界面显示, 影响体验
-  /*
-  async beforeRouteEnter (to: string, from:string, next:any) {
-    // 访问权限接口, 查看是否有权限
-    const res = await Vue.prototype.$api.isLogin() // before 不能获取到实例 this
-    if (res.meta.status !== 200) {
-      return next('/login')
-    }
-    next()
-  }
-   */
   created() {
 
   }
@@ -253,7 +253,6 @@ export default class Admin extends Vue {
 
   // main
   .el-main {
-    min-width: 1100px;
     background: #e5e5e5;
   }
 }

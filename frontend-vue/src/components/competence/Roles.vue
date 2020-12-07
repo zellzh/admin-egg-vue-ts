@@ -1,7 +1,7 @@
 <template>
   <div class="role-container">
     <!-- 面包屑 -->
-    <Breadcrumb :navi-path="naviPath"/>
+    <Breadcrumb :navi-path="naviPath" @go-home="goHome"/>
     <!-- 卡片区域 -->
     <el-card shadow="always">
       <!-- 搜索区域 -->
@@ -190,7 +190,11 @@ export default class Roles extends Vue {
   @Ref() readonly addRoleForm?: Form
   @Ref() readonly delPop!: Pop
   @Ref() readonly tableColumn!: TableColumn
+  // 面包屑通信
   @Prop() readonly naviPath!: any[]
+  private goHome() {
+    this.$emit('go-home')
+  }
 
   /*data
     ====================================== */
@@ -378,8 +382,10 @@ export default class Roles extends Vue {
   private async onAssignRights() {
     const reqArr = this.combineAssignReq()
     const res = await this.$api.all(reqArr)
-    res.includes(undefined) || this.$message.success('分配权限成功')
-    await this.getRoleList()
+    if (res.length && !res.includes(undefined)) {
+      await this.getRoleList()
+      this.$message.success('分配权限成功')
+    }
     this.assignRightsVisible = false
   }
   // 整合分配权限的请求
@@ -400,7 +406,7 @@ export default class Roles extends Vue {
     }
     // 3.计算删除的 id
     const delIds = ownIds.filter(id => !totalIds.includes(id))
-    if (addIds.length) {
+    if (delIds.length) {
       reqArr.push(
           this.$api.delRoleRights(this.curRoleId, {
             rights_ids: delIds,

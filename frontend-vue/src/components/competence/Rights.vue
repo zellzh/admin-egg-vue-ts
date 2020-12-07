@@ -1,7 +1,7 @@
 <template>
   <div class="rights-container">
     <!-- 面包屑 -->
-    <Breadcrumb :navi-path="naviPath"/>
+    <Breadcrumb :navi-path="naviPath" @go-home="goHome"/>
     <!-- 卡片区域 -->
     <el-card shadow="always">
       <!-- 搜索区域 -->
@@ -197,7 +197,11 @@ export default class Rights extends Vue {
     ====================================== */
   @Ref() readonly addRightsForm?: Form
   @Ref() readonly delPop!: Pop
+  // 面包屑通信
   @Prop() readonly naviPath!: any[]
+  private goHome() {
+    this.$emit('go-home')
+  }
 
   /*data & computed
     ====================================== */
@@ -338,7 +342,7 @@ export default class Rights extends Vue {
   }
   // 路径验证
   private verifyPath(rule: any, value:string, cb:any) {
-    if (this.rightsData.level && value && !value.trim()) {
+    if (this.rightsData.level && !value?.trim()) {
       cb('路由或请求权限必须填写路径')
     } else {
       cb()

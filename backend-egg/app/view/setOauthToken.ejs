@@ -12,11 +12,8 @@
 <script>
   window.onload = function () {
     // 获取动态路由传递的数据, 通过 opener.postMessage 通信给父 window
-    const token = {
-      access_token: '<%= access_token%>',
-      refresh_token: '<%= refresh_token%>'
-    }
-    opener.postMessage(token, '<%= frontendURL%>')
+    const data = <%- JSON.stringify(userInfo) %>
+    opener.postMessage(data, '<%= frontendURL %>')
     // 关闭窗口
     close()
   }

@@ -17,6 +17,7 @@ export default class ManagerService extends Service {
   // 查询用户
   public async retrieve(user: Partial<Manager>) {
     const { ctx } = this;
+    ctx.deleteEmpty(user);
     const { username, phone, email } = user;
     const res = await ctx.repo.Manager.createQueryBuilder('user')
       // 通过两张中间表查询到当前用户所有权限
